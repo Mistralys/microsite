@@ -48,6 +48,11 @@ abstract class Site
     * @var UI
     */
     protected $ui;
+
+   /**
+    * @var UI_Navigation
+    */
+    protected $navigation;
     
     public function __construct(string $namespace, string $webrootFolder, string $webrootUrl)
     {
@@ -65,6 +70,8 @@ abstract class Site
     
     abstract public function getDocumentTitle() : string;
     
+    abstract protected function configureNavigation() : void;
+    
    /**
     * This is similar to the document title: it is displayed
     * in the navigation as the title of the website.
@@ -72,6 +79,11 @@ abstract class Site
     * @return string
     */
     abstract public function getNavigationTitle() : string;
+    
+    public function getRequest()
+    {
+        return $this->request;
+    }
     
     public function getUI() : UI
     {
@@ -100,6 +112,31 @@ abstract class Site
     
     public function render() : string
     {
+        $tpl = $this->ui->createTemplate('Document');
+
+        $page = $this->getActivePage();
+        
+        $tpl->setVar('page-content', $page->render());
+        
+        return $tpl->render();
+    }
+    
+    public function getActivePageID() : string
+    {
+        return $this->getActivePage()->getID();
+    }
+    
+   /**
+    * @var Page
+    */
+    protected $activePage;
+    
+    public function getActivePage() : Page
+    {
+        if(isset($this->activePage)) {
+            return $this->activePage;
+        }
+        
         $action = $this->request
         ->registerParam('action')
         ->setEnum($this->getURLNames())
@@ -109,13 +146,9 @@ abstract class Site
             $action = $this->getDefaultPage()->getURLName();
         }
         
-        $tpl = $this->ui->createTemplate('Document');
+        $this->activePage = $this->getPageByURLName($action);
         
-        $page = $this->getPageByURLName($action);
-        
-        $tpl->setVar('page-content', $page->render());
-        
-        return $tpl->render();
+        return $this->activePage;
     }
     
     public function display() : void

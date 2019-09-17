@@ -301,4 +301,9 @@ abstract class Page
             throw new \Exception(sprintf('The page [%s] does not have a subaction [%s].', $this->getID(), $this->subaction));
         }
     }
+    
+    public function isActive() : bool
+    {
+        return $this->site->getActivePage() === $this;
+    }
 }

@@ -97,4 +97,9 @@ class UI
     {
         return $this->site;
     }
+    
+    public function createNavigation() : UI_Navigation
+    {
+        return new UI_Navigation($this, $this->site);
+    }
 }

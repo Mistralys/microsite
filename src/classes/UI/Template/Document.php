@@ -45,6 +45,9 @@ class UI_Template_Document extends UI_Template
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
+          	<?php 
+          	    
+          	?>
             <li class=""><a href="?action=overview">Overview</a></li>
             <li class=""><a href="?action=appconfigs">App configs</a></li>
             <li class=""><a href="?action=envcheck">Environment check</a></li>
