@@ -12,6 +12,8 @@ abstract class Site
     
     const ERROR_CANNOT_INSTANTIATE_PAGE = 38003;
     
+    const ERROR_DEFAULT_PAGE_DOES_NOT_EXIST = 38004;
+    
    /**
     * @var string
     */
@@ -36,6 +38,11 @@ abstract class Site
     * @var Page[]
     */
     protected $pages;
+    
+   /**
+    * @var \AppUtils\Request
+    */
+    protected $request;
     
     public function __construct(string $namespace, string $webrootFolder, string $webrootUrl)
     {
@@ -63,10 +70,88 @@ abstract class Site
         return $this->installFolder;
     }
     
-    public function start()
+    public function render() : string
     {
+        $action = $this->request
+        ->registerParam('action')
+        ->setEnum($this->getURLNames())
+        ->get();
         
+        if(empty($action)) {
+            $action = $this->getDefaultPage()->getURLName();
+        }
+        
+        $page = $this->getPageByURLName($action);
+        
+        return $page->render();
     }
+    
+    public function display() : void
+    {
+        echo $this->render();
+    }
+    
+    public function getDefaultPage() : Page
+    {
+        $id = $this->getDefaultPageID();
+        
+        $page = $this->getPageByID($id);
+        
+        if($page !== null) {
+            return $page;
+        }
+        
+        throw new \Exception(
+            sprintf(
+                'The default page [%s] does not exist.',
+                $id
+            ),
+            self::ERROR_DEFAULT_PAGE_DOES_NOT_EXIST
+        );
+    }
+    
+    public function getPageByID(string $id) : ?Page
+    {
+        foreach($this->pages as $page) 
+        {
+            if($page->getID() === $id) {
+                return $page;
+            }
+        }
+        
+        return null;
+    }
+    
+    public function getPageByURLName($urlName) : ?Page
+    {
+        foreach($this->pages as $page)
+        {
+            if($page->getURLName() === $urlName) {
+                return $page;
+            }
+        }
+        
+        return null;
+    }
+    
+   /**
+    * Retrieves an indexed array with the URL names for
+    * all available pages.
+    * 
+    * @return string[]
+    */
+    protected function getURLNames() : array
+    {
+        $result = array();
+        
+        foreach($this->pages as $page) {
+            $result[] = $page->getURLName();
+        }
+        
+        return $result;
+    }
+    
+    abstract public function getDefaultPageID() : string;
     
     public function addWarning($message) : Site_Message
     {
