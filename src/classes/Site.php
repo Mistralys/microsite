@@ -4,7 +4,25 @@ namespace Microsite;
 
 abstract class Site
 {
-    protected function addWarning($message)
+    protected $webrootFolder;
+    
+    protected $webrootUrl;
+    
+    protected $installFolder;
+    
+    public function __construct($webrootFolder, $webrootUrl)
+    {
+        $this->webrootFolder = $webrootFolder;
+        $this->webrootUrl = $webrootUrl;
+        $this->installFolder = realpath(__DIR__.'/../../');
+    }
+    
+    public function start()
+    {
+        
+    }
+    
+    public function addWarning($message)
     {
         $this->addMessage('warning', $message);
     }
@@ -36,13 +54,7 @@ abstract class Site
         $_SESSION['messages'] = array();
     }
     
-    protected $webrootFolder;
-    
-    protected $webrootUrl;
-    
-    protected $installFolder;
-    
-    public static function boot($siteID, $webrootFolder, $webrootUrl)
+    public static function boot($webrootFolder, $webrootUrl)
     {
         $localConfig = $webrootFolder.'/config-local.php';
         if(!file_exists($localConfig)) {
@@ -51,6 +63,9 @@ abstract class Site
         
         require_once $localConfig;
         
-        $installFolder = realpath(__DIR__.'/../../');
+        $class = get_called_class();
+        
+        $site = new $class($webrootFolder, $webrootUrl);
+        $site->start();
     }
 }
