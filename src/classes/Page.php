@@ -195,9 +195,15 @@ abstract class Page
         return strtolower($this->getID());
     }
     
+    protected $id;
+    
     public function getID()
     {
-        return str_replace('Page_', '', get_class($this));
+        if(!isset($this->id)) {
+            $this->id =  str_replace($this->site->getNamespace().'\Page_', '', get_class($this));
+        }
+        
+        return $this->id;
     }
     
     public function buildURL($params=array())

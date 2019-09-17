@@ -70,6 +70,11 @@ abstract class Site
         return $this->installFolder;
     }
     
+    public function getNamespace() : string
+    {
+        return $this->namespace;
+    }
+    
     public function render() : string
     {
         $action = $this->request
