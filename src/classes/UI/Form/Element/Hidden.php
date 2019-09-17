@@ -1,5 +1,7 @@
 <?php
 
+namespace Microsite;
+
 class UI_Form_Element_Hidden extends UI_Form_Element
 {
     protected function _render()

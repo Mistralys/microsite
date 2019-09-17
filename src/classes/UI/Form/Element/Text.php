@@ -1,5 +1,7 @@
 <?php
 
+namespace Microsite;
+
 class UI_Form_Element_Text extends UI_Form_Element
 {
     public function supportsValue()

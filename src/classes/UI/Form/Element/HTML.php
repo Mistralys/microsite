@@ -1,5 +1,7 @@
 <?php
 
+namespace Microsite;
+
 class UI_Form_Element_HTML extends UI_Form_Element
 {
     protected $html = '';

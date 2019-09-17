@@ -157,7 +157,7 @@ abstract class UI_Form_Element
         $atts['id'] = $this->id;
         $atts['class'] = $this->renderClasses();
         
-        return AppUtils\ConvertHelper::array2attributeString($atts);
+        return \AppUtils\ConvertHelper::array2attributeString($atts);
     }
     
     protected function renderClasses()
