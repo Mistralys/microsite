@@ -94,8 +94,6 @@ abstract class Page
     
     public function render() : string
     {
-        UI::addScript('ajax.js');
-        
         $headVars = array(
             'pageBaseURL' => $this->buildURL(),
             'pageAction' => $this->getURLName(),
@@ -111,7 +109,7 @@ abstract class Page
         }
         
         foreach($headVars as $name => $value) {
-            UI::addJSHead(sprintf(
+            $this->ui->addJSHead(sprintf(
                 "var %s = %s;",
                 $name,
                 json_encode($value)
@@ -216,22 +214,22 @@ abstract class Page
     
     public function redirectWithErrorMessage($message, $url)
     {
-        $this->redirectWithMessage(UI::MESSAGE_TYPE_ERROR, $message, $url);
+        $this->redirectWithMessage(Site_Message::MESSAGE_TYPE_ERROR, $message, $url);
     }
 
     public function redirectWithInfoMessage($message, $url)
     {
-        $this->redirectWithMessage(UI::MESSAGE_TYPE_INFO, $message, $url);
+        $this->redirectWithMessage(Site_Message::MESSAGE_TYPE_INFO, $message, $url);
     }
     
     public function redirectWithSuccessMessage($message, $url)
     {
-        $this->redirectWithMessage(UI::MESSAGE_TYPE_SUCCESS, $message, $url);
+        $this->redirectWithMessage(Site_Message::MESSAGE_TYPE_SUCCESS, $message, $url);
     }
     
     function redirectWithMessage($type, $message, $url)
     {
-        UI::addMessage($message, $type);
+        $this->site->addMessage($type, $message);
         $this->redirect($url);
     }
     

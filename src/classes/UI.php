@@ -17,7 +17,7 @@ class UI
     */
     protected $site;
     
-    public function _construct(Site $site)
+    public function __construct(Site $site)
     {
         $this->site = $site;
     }

@@ -11,6 +11,7 @@ class UI_Template_Document extends UI_Template
         $this->ui->addVendorScript('twbs/bootstrap', 'dist/css/bootstrap.min.css');
         $this->ui->addVendorScript('fortawesome/font-awesome', 'css/font-awesome.css');
         $this->ui->addSiteScript('css/ui.css');
+        $this->ui->addSiteScript('js/ajax.js');
         $this->ui->addVendorScript('components/jquery', 'jquery.min.js');
         $this->ui->addVendorScript('twbs/bootstrap', 'dist/js/bootstrap.min.js');
     }
@@ -27,7 +28,7 @@ class UI_Template_Document extends UI_Template
     <title><?php echo $this->site->getDocumentTitle() ?></title>
     <link rel="icon" type="image/ico" href="favicon.ico">
     <?php 
-        echo UI::renderHead();
+        echo $this->ui->renderHead();
     ?>
   </head>
   <body>
