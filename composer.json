@@ -6,6 +6,15 @@
             "url":"https://github.com/Mistralys/application-utils.git"
         }
     ],
+    "autoload" : {
+		"psr-4" : 
+		{
+			"Microsite\\" : "src/classes"
+		},
+		"classmap" : [
+			"src/classes"
+		]
+	},
     "minimum-stability": "dev",
     "prefer-stable": true,
 	"require" : {
