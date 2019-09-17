@@ -86,7 +86,7 @@ class UI
     
     public function createTemplate(string $id) : UI_Template
     {
-        $class = 'UI_Template_'.$id;
+        $class = '\Microsite\UI_Template_'.$id;
         
         $tpl = new $class($this);
         
