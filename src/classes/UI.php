@@ -1,46 +1,100 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Microsite;
 
 class UI
 {
-    protected static $jsHead = array();
+    protected $jsHead = array();
     
-    protected static $jsOnload = array();
+    protected $jsOnload = array();
     
-    protected static $scripts = array();
+    protected $scripts = array();
     
-    public static function addJSHead($statement)
+   /**
+    * @var Site
+    */
+    protected $site;
+    
+    public function _construct(Site $site)
     {
-        self::$jsHead[] = rtrim($statement, ';');
+        $this->site = $site;
     }
     
-    public static function addJSOnload($statement)
+    public function addJSHead(string $statement) : UI
     {
-        self::$jsOnload[] = rtrim($statement, ';');
+        $this->jsHead[] = rtrim($statement, ';');
+        return $this;
     }
     
-    public static function addScript($filename)
+    public function addJSOnload(string $statement) : UI
     {
-        if(!in_array($filename, self::$scripts)) {
-            self::$scripts[] = $filename;
+        $this->jsOnload[] = rtrim($statement, ';');
+        return $this;
+    }
+    
+    public function addScript(string $filename) : UI
+    {
+        if(!in_array($filename, $this->scripts)) {
+            $this->scripts[] = $filename;
         }
+        
+        return $this;
     }
     
-    public static function renderHead()
+    public function addVendorScript(string $packageName, string $path) : UI
+    {
+        $url = $this->site->getWebrootURL().'/vendor/'.$packageName.'/'.$path;
+        return $this->addScript($url);
+    }
+    
+    public function addSiteScript(string $path) : UI
+    {
+        return $this->addVendorScript('mistralys/microsite', $path);
+    }
+    
+    public function renderHead() : string
     {
         $lines = array();
-        foreach(self::$scripts as $script) {
-            $lines[] = '<script src="js/'.$script.'"></script>';
+        
+        foreach($this->scripts as $script) 
+        {
+            $ext = \AppUtils\FileHelper::getExtension($script);
+            
+            switch($ext) {
+                case 'js':
+                    $lines[] = '<script src="'.$script.'"></script>';
+                    break;
+                    
+                case 'css':
+                    $lines[] = '<link href="'.$script.'" rel="stylesheet">';
+                    break;
+            }
+            
         }
         
         $lines[] = '<script>';
-        $lines[] = implode(';'.PHP_EOL, self::$jsHead).';';
+        $lines[] = implode(';'.PHP_EOL, $this->jsHead).';';
         $lines[] = '$(document).ready(function() {';
-        $lines[] = implode(';'.PHP_EOL, self::$jsOnload);
+        $lines[] = implode(';'.PHP_EOL, $this->jsOnload);
         $lines[] = '});';
         $lines[] = '</script>';
             
         return implode(PHP_EOL, $lines);
+    }
+    
+    public function createTemplate(string $id) : UI_Template
+    {
+        $class = 'UI_Template_'.$id;
+        
+        $tpl = new $class($this);
+        
+        return $tpl;
+    }
+    
+    public function getSite() : Site
+    {
+        return $this->site;
     }
 }

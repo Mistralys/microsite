@@ -44,6 +44,11 @@ abstract class Site
     */
     protected $request;
     
+   /**
+    * @var UI
+    */
+    protected $ui;
+    
     public function __construct(string $namespace, string $webrootFolder, string $webrootUrl)
     {
         $this->webrootFolder = $webrootFolder;
@@ -51,8 +56,26 @@ abstract class Site
         $this->namespace = $namespace;
         $this->installFolder = realpath(__DIR__.'/../../');
         $this->request = new \AppUtils\Request();
+        $this->ui = new UI($this);
         
         $this->initPages();
+    }
+
+    abstract public function getDefaultPageID() : string;
+    
+    abstract public function getDocumentTitle() : string;
+    
+   /**
+    * This is similar to the document title: it is displayed
+    * in the navigation as the title of the website.
+    * 
+    * @return string
+    */
+    abstract public function getNavigationTitle() : string;
+    
+    public function getUI() : UI
+    {
+        return $this->ui;
     }
     
     public function getWebrootURL() : string
@@ -86,9 +109,13 @@ abstract class Site
             $action = $this->getDefaultPage()->getURLName();
         }
         
+        $tpl = $this->ui->createTemplate('Document');
+        
         $page = $this->getPageByURLName($action);
         
-        return $page->render();
+        $tpl->setVar('page-content', $page->render());
+        
+        return $tpl->render();
     }
     
     public function display() : void
@@ -155,8 +182,6 @@ abstract class Site
         
         return $result;
     }
-    
-    abstract public function getDefaultPageID() : string;
     
     public function addWarning($message) : Site_Message
     {

@@ -1,0 +1,40 @@
+TR.table-subheader{
+}
+
+.table-subheader TD{
+padding:0 !important;
+}
+
+.table-subheader TD > DIV{
+font-weight:normal;
+font-size:18px;
+line-height:24px !important;
+text-transform:uppercase;
+background:#f0f0f0;
+color:#666;
+margin-top:30px;
+padding:4px 8px;
+border-top:solid 1px #ddd;
+}
+
+.table-subheader TD > DIV > SPAN{
+float:right;
+text-transform:none;
+font-size:11px;
+color:#999;
+}
+
+.table-alert .alert{
+margin-bottom:0;
+padding:8px;
+}
+
+.table TD,
+.table TH{
+vertical-align:middle !important;
+}
+
+.table TD.align-right,
+.table TH.align-right{
+text-align:right;
+}

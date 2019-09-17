@@ -20,12 +20,21 @@ abstract class Page
     */
     protected $breadcrumb;
     
+   /**
+    * @var Site
+    */
     protected $site;
+    
+   /**
+    * @var UI
+    */
+    protected $ui;
     
     public function __construct(Site $site)
     {
         $this->request = new \AppUtils\Request();
         $this->site = $site;
+        $this->ui = $site->getUI();
         $this->breadcrumb = new UI_Breadcrumb($this);
         $this->form = new UI_Form($this);
         
@@ -122,14 +131,6 @@ abstract class Page
                 $data = array(
                     'action' => $this->getURLName()
                 );
-                
-                if(isset($this->app)) {
-                    $data['appid'] = $this->app->getID();
-                }
-                
-                if(isset($this->rep)) {
-                    $data['repid'] = $this->rep->getID();
-                }
                 
         		foreach($this->subactions as $name => $def) 
         		{
@@ -256,14 +257,6 @@ abstract class Page
         $this->form
         ->setHidden('action', $this->getURLName())
         ->setHidden('subaction', $this->subaction);
-        
-        if($this->app) {
-            $this->form->setHidden('appid', $this->app->getID());
-        }
-        
-        if($this->rep) {
-            $this->form->setHidden('repid', $this->rep->getID());
-        }
     }
     
     protected function addSubaction($name, $label, $private=false, $default=false)
