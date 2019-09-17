@@ -80,7 +80,7 @@ abstract class Site
         
         foreach($names as $name) 
         {
-            $className = $this->namespace.'\\'.$name;
+            $className = $this->namespace.'\\Page_'.$name;
             
             if(!class_exists($className)) {
                 throw new \Exception(
