@@ -48,14 +48,44 @@ abstract class Site
         $this->initPages();
     }
     
+    public function getWebrootURL() : string
+    {
+        return $this->webrootUrl;
+    }
+    
+    public function getWebrootFolder() : string
+    {
+        return $this->webrootFolder;
+    }
+   
+    public function getInstallFolder() : string
+    {
+        return $this->installFolder;
+    }
+    
     public function start()
     {
         
     }
     
-    public function addWarning($message)
+    public function addWarning($message) : Site_Message
     {
-        $this->addMessage('warning', $message);
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_WARNING, $message);
+    }
+
+    public function addError($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_ERROR, $message);
+    }
+    
+    public function addInfo($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
+    }
+
+    public function addNotice($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
     }
     
     protected function initPages() : void

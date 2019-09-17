@@ -5,7 +5,7 @@ namespace Microsite;
 abstract class Page
 {
    /**
-    * @var AppUtils\Request
+    * @var \AppUtils\Request
     */
     protected $request;
     
@@ -20,25 +20,15 @@ abstract class Page
     */
     protected $breadcrumb;
     
-    protected $abstract;
+    protected $site;
     
-    public function __construct()
+    public function __construct(Site $site)
     {
-        $this->request = new AppUtils\Request();
-        $this->migrator = createMicrosite();
+        $this->request = new \AppUtils\Request();
+        $this->site = $site;
         $this->breadcrumb = new UI_Breadcrumb($this);
         $this->form = new UI_Form($this);
         
-        $appID = $this->request->getParam('appid');
-        if(!empty($appID) && $this->migrator->appIDExists($appID)) {
-            $this->app = $this->migrator->getAppByID($appID);
-        }
-        
-        $repID = $this->request->getParam('repid');
-        if(!empty($repID) && isset($this->app) && $this->app->repositoryIDExists($repID)) {
-            $this->rep = $this->app->getRepositoryByID($repID);
-        }
-
         $ajax = $this->request->getParam('ajaxMethod');
         if(!empty($ajax)) 
         {
@@ -78,31 +68,22 @@ abstract class Page
         exit;
     }
     
-    
-    public function getRequest()
+    public function getRequest() : \AppUtils\Request
     {
         return $this->request;
     }
     
-    public function display()
+    public function display() : Page
     {
         echo $this->render();
         return $this;
     }
     
-    public function setPageTitle($title)
-    {
-        $this->title = $title;
-        return $this;
-    }
+    abstract public function getPageTitle() : string;
     
-    public function setPageAbstract($abstract)
-    {
-        $this->abstract = $abstract;
-        return $this;
-    }
+    abstract public function getPageAbstract() : string;
     
-    public function render()
+    public function render() : string
     {
         UI::addScript('ajax.js');
         
@@ -175,12 +156,14 @@ abstract class Page
     		$html = $nav.$html;      
         }
         
-        if(isset($this->abstract)) {
-            $html = '<p>'.$this->abstract.'</p><hr>'.$html;
+        $abstract = $this->getPageAbstract();
+        if(!empty($abstract)) {
+            $html = '<p>'.$abstract.'</p><hr>'.$html;
         }
         
-        if(isset($this->title)) {
-            $html = '<h2>'.$this->title.'</h2>'.$html;
+        $title = $this->getPageTitle();
+        if(!empty($title)) {
+            $html = '<h2>'.$title.'</h2>'.$html;
         }
         
         $html = $this->breadcrumb->render().$html;
@@ -221,7 +204,7 @@ abstract class Page
     {
         $params['action'] = $this->getURLName(); 
         
-        return MIGRATOR_URL.'/?'.http_build_query($params);
+        return $this->site->getWebrootURL().'/?'.http_build_query($params);
     }
     
     public function redirectWithErrorMessage($message, $url)
@@ -321,5 +304,4 @@ abstract class Page
             throw new \Exception(sprintf('The page [%s] does not have a subaction [%s].', $this->getID(), $this->subaction));
         }
     }
-    
 }

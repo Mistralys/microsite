@@ -8,6 +8,8 @@ class Site_Message
     
     const MESSAGE_TYPE_ERROR = 'error';
     
+    const MESSAGE_TYPE_WARNING = 'warning';
+    
     const MESSAGE_TYPE_INFO = 'info';
     
     protected $type;
