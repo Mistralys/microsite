@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Microsite;
 
 class UI_Breadcrumb
@@ -9,14 +11,14 @@ class UI_Breadcrumb
     */
     protected $page;
     
-    protected $items;
+    protected $items = array();
     
     public function __construct(Page $page)
     {
         $this->page = $page;
     }
     
-    public function add($label, $url)
+    public function add(string $label, string $url) : UI_Breadcrumb
     {
         $this->items[] = array(
             'label' => $label,
@@ -60,8 +62,16 @@ class UI_Breadcrumb
         return $html;
     }
     
-    public function addOverview()
+    public function display()
     {
-        $this->add('Overview', '?action=overview');
+        echo $this->render();
+    }
+    
+    public function addHomepage() : UI_Breadcrumb
+    {
+        $home = $this->page->getSite()->getDefaultPage();
+        $this->add($home->getNavigationTitle(), $home->buildURL());
+        
+        return $this;
     }
 }

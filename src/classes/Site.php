@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Microsite;
 
-abstract class Site
+abstract class Site extends Page
 {
     const ERROR_PAGES_FOLDER_DOES_NOT_EXIST = 38001;
     
     const ERROR_NO_PAGES_FOUND = 38002;
-    
-    const ERROR_CANNOT_INSTANTIATE_PAGE = 38003;
     
     const ERROR_DEFAULT_PAGE_DOES_NOT_EXIST = 38004;
     
@@ -35,11 +33,6 @@ abstract class Site
     protected $namespace;
     
    /**
-    * @var Page[]
-    */
-    protected $pages;
-    
-   /**
     * @var \AppUtils\Request
     */
     protected $request;
@@ -49,46 +42,36 @@ abstract class Site
     */
     protected $ui;
 
-   /**
-    * @var UI_Navigation
-    */
-    protected $navigation;
-    
     public function __construct(string $namespace, string $webrootFolder, string $webrootUrl)
     {
         $this->webrootFolder = $webrootFolder;
         $this->webrootUrl = $webrootUrl;
         $this->namespace = $namespace;
         $this->installFolder = realpath(__DIR__.'/../../');
+        
         $this->request = new \AppUtils\Request();
         $this->ui = new UI($this);
-        $this->navigation = $this->ui->createNavigation()->addLimitParameter('action'); 
+     
+        parent::__construct($this);
         
-        $this->initPages();
+        if(empty($this->pages)) {
+            throw new \Exception(
+                'No pages found in the [assets/classes/Page] folder.',
+                self::ERROR_NO_PAGES_FOUND
+            );
+        }
     }
 
-    abstract public function getDefaultPageID() : string;
-    
     abstract public function getDocumentTitle() : string;
     
-    abstract protected function initNavigation() : void;
-    
-   /**
-    * This is similar to the document title: it is displayed
-    * in the navigation as the title of the website.
-    * 
-    * @return string
-    */
-    abstract public function getNavigationTitle() : string;
-    
-    public function getRequest()
+    public function getPageTitle() : string
     {
-        return $this->request;
+        return '';
     }
     
-    public function getUI() : UI
+    public function getPageAbstract() : string
     {
-        return $this->ui;
+        return '';
     }
     
     public function getWebrootURL() : string
@@ -99,6 +82,11 @@ abstract class Site
     public function getWebrootFolder() : string
     {
         return $this->webrootFolder;
+    }
+    
+    public function getClassesFolder() : string
+    {
+        return $this->webrootFolder.'/assets/classes';
     }
    
     public function getInstallFolder() : string
@@ -111,32 +99,23 @@ abstract class Site
         return $this->namespace;
     }
     
-    public function render() : string
+    protected function _render() : string
     {
-        $this->initUI();
-        
         $tpl = $this->ui->createTemplate('Document');
 
-        $page = $this->getActivePage();
-        
-        $tpl->setVar('page-content', $page->render());
+        $tpl->setVar('page-content', $this->getActivePage()->render());
         
         return $tpl->render();
     }
     
-    protected function initUI() : void
+    protected function initRender()
     {
-        $this->initNavigation();
+        $this->getActivePage()->handleAJAX();
     }
     
-    public function getNavigation() : UI_Navigation
+    public function getActiveSlug() : string
     {
-        return $this->navigation;
-    }
-    
-    public function getActivePageID() : string
-    {
-        return $this->getActivePage()->getID();
+        return $this->getActivePage()->getSlug();
     }
     
    /**
@@ -150,30 +129,25 @@ abstract class Site
             return $this->activePage;
         }
         
-        $action = $this->request
-        ->registerParam('action')
-        ->setEnum($this->getURLNames())
+        $slug = $this->request
+        ->registerParam('slug')
+        ->setEnum($this->getSlugs())
         ->get();
         
-        if(empty($action)) {
-            $action = $this->getDefaultPage()->getURLName();
+        if(empty($slug)) {
+            $slug = $this->getDefaultPage()->getSlug();
         }
         
-        $this->activePage = $this->getPageByURLName($action);
+        $this->activePage = $this->getPageBySlug($slug);
         
         return $this->activePage;
     }
     
-    public function display() : void
-    {
-        echo $this->render();
-    }
-    
     public function getDefaultPage() : Page
     {
-        $id = $this->getDefaultPageID();
+        $slug = $this->getDefaultSlug();
         
-        $page = $this->getPageByID($id);
+        $page = $this->getPageBySlug($slug);
         
         if($page !== null) {
             return $page;
@@ -182,119 +156,24 @@ abstract class Site
         throw new \Exception(
             sprintf(
                 'The default page [%s] does not exist.',
-                $id
+                $slug
             ),
             self::ERROR_DEFAULT_PAGE_DOES_NOT_EXIST
         );
     }
     
-    public function getPageByID(string $id) : ?Page
+    protected function getOwnFolder() : string
     {
-        foreach($this->pages as $page) 
-        {
-            if($page->getID() === $id) {
-                return $page;
-            }
-        }
+        $folder = $this->getClassesFolder().'/Page';
         
-        return null;
-    }
-    
-    public function getPageByURLName($urlName) : ?Page
-    {
-        foreach($this->pages as $page)
-        {
-            if($page->getURLName() === $urlName) {
-                return $page;
-            }
-        }
-        
-        return null;
-    }
-    
-   /**
-    * Retrieves an indexed array with the URL names for
-    * all available pages.
-    * 
-    * @return string[]
-    */
-    protected function getURLNames() : array
-    {
-        $result = array();
-        
-        foreach($this->pages as $page) {
-            $result[] = $page->getURLName();
-        }
-        
-        return $result;
-    }
-    
-    public function addWarning($message) : Site_Message
-    {
-        return $this->addMessage(Site_Message::MESSAGE_TYPE_WARNING, $message);
-    }
-
-    public function addError($message) : Site_Message
-    {
-        return $this->addMessage(Site_Message::MESSAGE_TYPE_ERROR, $message);
-    }
-    
-    public function addInfo($message) : Site_Message
-    {
-        return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
-    }
-
-    public function addNotice($message) : Site_Message
-    {
-        return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
-    }
-    
-    protected function initPages() : void
-    {
-        $pagesFolder = $this->webrootFolder.'/assets/classes/Pages';
-        
-        if(!file_exists($pagesFolder)) {
+        if(!file_exists($folder)) {
             throw new \Exception(
-                'The [assets/classes/Pages] folder does not exist.' ,
+                'The [assets/classes/Page] folder does not exist.' ,
                 self::ERROR_PAGES_FOLDER_DOES_NOT_EXIST
             );
         }
         
-        $names = \AppUtils\FileHelper::createFileFinder($pagesFolder)->getPHPClassNames();
-        
-        if(empty($names)) {
-            throw new \Exception(
-                'No pages found in the [assets/classes/Pages] folder.',
-                self::ERROR_NO_PAGES_FOUND
-            );
-        }   
-        
-        foreach($names as $name) 
-        {
-            $className = $this->namespace.'\\Page_'.$name;
-            
-            if(!class_exists($className)) {
-                throw new \Exception(
-                    sprintf(
-                        'Cannot initialize page [%s], the class [%s] was not found.',
-                        $name,
-                        $className
-                    ),    
-                    self::ERROR_CANNOT_INSTANTIATE_PAGE
-                );
-            }
-            
-            $this->pages[] = new $className($this);
-        }
-    }
-    
-    protected function addMessage($type, $message) : Site_Message
-    {
-        $message = new Site_Message($type, $message);
-        
-        $_SESSION['messages'][] = $message;
-        
-        return $message;
+        return $folder;
     }
     
     /**

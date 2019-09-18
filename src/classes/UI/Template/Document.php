@@ -16,7 +16,7 @@ class UI_Template_Document extends UI_Template
         $this->ui->addVendorScript('twbs/bootstrap', 'dist/js/bootstrap.min.js');
     }
     
-    public function render() : string
+    public function _render() : string
     {
         ob_start();
 ?><!DOCTYPE html>

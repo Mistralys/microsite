@@ -18,17 +18,26 @@ abstract class UI_Template
     
     protected $vars = array();
     
+   /**
+    * @var Page
+    */
+    protected $activePage;
+    
     public function __construct(UI $ui)
     {
         $this->site = $ui->getSite();
         $this->ui = $ui;
-        
-        $this->init();
+        $this->activePage = $this->site->getActivePage();
     }
     
     protected function init()
     {
         
+    }
+    
+    public function createTemplate($id) : UI_Template
+    {
+        return $this->ui->createTemplate($id);
     }
     
     public function setVar(string $name, $value) : UI_Template
@@ -52,6 +61,17 @@ abstract class UI_Template
         return null;
     }
     
+    public function render() : string
+    {
+        $this->init();
+        
+        return $this->_render();
+    }
     
-    abstract public function render() : string;
+    public function display()
+    {
+        echo $this->render();
+    }
+    
+    abstract protected function _render() : string;
 }

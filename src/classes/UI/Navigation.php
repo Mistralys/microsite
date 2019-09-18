@@ -43,6 +43,11 @@ class UI_Navigation
         return $this->ui;
     }
     
+    public function hasItems() : bool
+    {
+        return !empty($this->items);
+    }
+    
    /**
     * @return UI_Navigation_Item[]
     */

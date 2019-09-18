@@ -4,17 +4,15 @@ namespace Microsite;
 
 abstract class Page
 {
+    const ERROR_CANNOT_INSTANTIATE_PAGE = 38201;
+    
+    const ERROR_NOT_A_PAGE_INSTANCE = 38202;
+    
    /**
     * @var \AppUtils\Request
     */
     protected $request;
-    
-    protected $subaction;
-    
-    protected $subactions;
-    
-    protected $submethod;
-    
+
    /**
     * @var UI_Breadcrumb
     */
@@ -30,27 +28,80 @@ abstract class Page
     */
     protected $ui;
     
-    public function __construct(Site $site)
+   /**
+    * @var Page
+    */
+    protected $parentPage;
+    
+    /**
+     * @var UI_Navigation
+     */
+    protected $navigation;
+    
+   /**
+    * @var Page[]
+    */
+    protected static $pages = array();
+
+   /**
+    * @var Page[]
+    */
+    protected $subpages = array();
+    
+    public function __construct(Site $site, Page $parentPage=null)
     {
-        $this->request = new \AppUtils\Request();
+        // avoid setting these for the main site instance,
+        // which inherits from page.
+        if(!$parentPage instanceof Site) 
+        {
+            $this->parentPage = $parentPage;
+            $this->request = $site->getRequest();
+            $this->ui = $site->getUI();
+        }
+        
         $this->site = $site;
-        $this->ui = $site->getUI();
         $this->breadcrumb = new UI_Breadcrumb($this);
         $this->form = new UI_Form($this);
         
+        $this->initPages();
+    }
+    
+    abstract protected function initNavigation() : void;
+
+    abstract public function getDefaultSlug() : string;
+    
+    abstract public function getPageTitle() : string;
+    
+    abstract public function getPageAbstract() : string;
+    
+    abstract public function getNavigationTitle() : string;
+    
+    abstract protected function _render() : string;
+    
+    public function getSite() : Site
+    {
+        return $this->site;
+    }
+    
+    public function getNavigation() : UI_Navigation
+    {
+        return $this->navigation;
+    }
+    
+    public function handleAJAX()
+    {
         $ajax = $this->request->getParam('ajaxMethod');
-        if(!empty($ajax)) 
-        {
-            $method = 'ajax_'.$ajax;
-            if(method_exists($this, $method)) {
-                $this->$method();
-                exit;
-            }
-            
-            $this->sendAjaxError('No such ajax method');
+        if(empty($ajax)) {
+            return;
         }
         
-        $this->resolveSubaction();
+        $method = 'ajax_'.$ajax;
+        if(method_exists($this, $method)) {
+            $this->$method();
+            exit;
+        }
+        
+        $this->sendAjaxError('No such ajax method');
     }
     
     protected function sendAjaxSuccess($data=array())
@@ -88,88 +139,26 @@ abstract class Page
         return $this;
     }
     
-    abstract public function getPageTitle() : string;
-    
-    abstract public function getPageAbstract() : string;
-    
-    abstract public function getNavigationTitle() : string;
-    
     public function render() : string
     {
-        $headVars = array(
-            'pageBaseURL' => $this->buildURL(),
-            'pageAction' => $this->getURLName(),
-            'pageSubaction' => $this->subaction
-        );
+        $this->initRender();
         
-        if(isset($this->app)) {
-            $headVars['appid'] = $this->app->getID();
-        }
-        
-        if(isset($this->rep)) {
-            $headVars['repid'] = $this->rep->getID();
-        }
-        
-        foreach($headVars as $name => $value) {
-            $this->ui->addJSHead(sprintf(
-                "var %s = %s;",
-                $name,
-                json_encode($value)
-            ));
-        }
-
-        ob_start();
-        $html = call_user_func(array($this, $this->submethod));
-        $html = ob_get_clean().$html;
+        $this->navigation = $this->ui->createNavigation()->addLimitParameter('action');
+        $this->initNavigation();
         
         $this->initForm();
         
-        if(!empty($this->subactions)) 
-        {
-            $nav =
-    		'<ul class="nav nav-pills">';
-                $data = array(
-                    'action' => $this->getURLName()
-                );
-                
-        		foreach($this->subactions as $name => $def) 
-        		{
-        		    $active = '';
-        		    if($name == $this->subaction) {
-        		        $active = ' class="active"';
-        		    }
-        		    
-        		    $urlData = $data;
-        		    $urlData['subaction'] = $name;
-        		    
-        		    $url = '?'.http_build_query($urlData);
-        		    
-        		    $nav .= '<li role="presentation"'.$active.'><a href="'.$url.'">'.$def['label'].'</a></li>';
-        		}
-                $nav .=
-    		'</ul>'.
-            '<br/>';
-                
-            if(isset($this->subactionAbstract)) {
-                $nav .= '<p>'.$this->subactionAbstract.'</p><hr>';
-            }
-                
-    		$html = $nav.$html;      
-        }
+        $tpl = $this->ui->createTemplate('Page');
+        $tpl->setVar('page', $this);
+        $tpl->setVar('breadcrumb', $this->breadcrumb);
+        $tpl->setVar('content', $this->_render());
         
-        $abstract = $this->getPageAbstract();
-        if(!empty($abstract)) {
-            $html = '<p>'.$abstract.'</p><hr>'.$html;
-        }
+        return $tpl->render();
+    }
+    
+    protected function initRender()
+    {
         
-        $title = $this->getPageTitle();
-        if(!empty($title)) {
-            $html = '<h2>'.$title.'</h2>'.$html;
-        }
-        
-        $html = $this->breadcrumb->render().$html;
-        
-        return $html;
     }
     
     public function setSubactionAbstract($abstract)
@@ -189,11 +178,6 @@ abstract class Page
         }
         
         return $this->subactions[$name];
-    }
-    
-    public function getURLName()
-    {
-        return strtolower($this->getID());
     }
     
     protected $id;
@@ -243,10 +227,6 @@ abstract class Page
         exit;
     }
 
-    abstract protected function _render_default();
-    
-    abstract protected function _initSubactions();
-    
    /**
     * @var UI_Form
     */
@@ -268,44 +248,161 @@ abstract class Page
         ); 
     }
     
-    protected function resolveSubaction()
+    public function hasParent() : bool
     {
-        $this->_initSubactions();
+        return isset($this->parentPage);
+    }
+    
+   /**
+    * Retrieves a slug of page IDs, in case this
+    * page has one or more parent pages. If it has no
+    * parents, it is like calling getID().
+    * 
+    * @return string Example: Page1.Page2.Page3 (From highest parent to this one)
+    */
+    public function getSlug() : string
+    {
+        $path = $this->getID();
         
-        $subaction = 'default';
-        
-        if(!empty($this->subactions))
-        {
-            $name = $this->request->getParam('subaction');
-            if(!empty($name))
-            {
-                $subaction = $name;
-            }
-            else 
-            {
-                foreach($this->subactions as $aname => $adef) {
-                    if($adef['default']) {
-                        $name = $aname;
-                        break;
-                    }
-                }
-            }
-            
-            if(isset($this->subactions[$name])) {
-                $subaction = $name;
-            }
+        if($this->hasParent()) {
+            $path = $this->parentPage->getSlug().'.'.$path;
         }
         
-        $this->submethod = '_render_'.str_replace('-', '_', $subaction);
-        $this->subaction = $subaction;
-        
-        if(!method_exists($this, $this->submethod)) {
-            throw new \Exception(sprintf('The page [%s] does not have a subaction [%s].', $this->getID(), $this->subaction));
-        }
+        return $path;
+    }
+    
+    protected function getOwnFolder() : string
+    {
+        return sprintf(
+            '%s/Page/%s',
+            $this->site->getClassesFolder(),
+            str_replace('.', '/', $this->getSlug())
+        );
     }
     
     public function isActive() : bool
     {
         return $this->site->getActivePage() === $this;
+    }
+    
+    public function getUI() : UI
+    {
+        return $this->ui;
+    }
+
+    public function addWarning($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_WARNING, $message);
+    }
+    
+    public function addError($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_ERROR, $message);
+    }
+    
+    public function addInfo($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
+    }
+    
+    public function addNotice($message) : Site_Message
+    {
+        return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
+    }
+    
+    protected function addMessage($type, $message) : Site_Message
+    {
+        $message = new Site_Message($type, $message);
+        
+        $_SESSION['messages'][] = $message;
+        
+        return $message;
+    }
+
+    /**
+     * Creates page instances from the target folder.
+     *
+     * @param string $pagesFolder
+     * @param Page|NULL $parentPage
+     * @throws \Exception
+     * @return Page[]
+     */
+    public function initPages()
+    {
+        $pagesFolder = $this->getOwnFolder();
+
+        if(!is_dir($pagesFolder)) {
+            return;
+        }
+        
+        $names = \AppUtils\FileHelper::createFileFinder($pagesFolder)->getPHPClassNames();
+        
+        foreach($names as $name)
+        {
+            if($this->parentPage) {
+                $name = str_replace('.', '_', $this->parentPage->getSlug()).'_'.$name;
+            }
+            
+            $className = $this->namespace.'\\Page_'.$name;
+            
+            if(!class_exists($className)) {
+                throw new \Exception(
+                    sprintf(
+                        'Cannot initialize page [%s], the class [%s] was not found.',
+                        $name,
+                        $className
+                    ),
+                    self::ERROR_CANNOT_INSTANTIATE_PAGE
+                );
+            }
+            
+            $page = new $className($this->site, $this);
+            
+            if(!$page instanceof Page) {
+                throw new \Exception(
+                    sprintf(
+                        'The page [%s] is not a \Microsite\Page class instance.',
+                        $className
+                    ),
+                    self::ERROR_NOT_A_PAGE_INSTANCE
+                );
+            }
+            
+            self::$pages[$page->getSlug()] = $page;
+            
+            $this->subpages[] = $page;
+        }
+    }
+
+   /**
+    * Retrieves a specific page by its slug.
+    * @param string $slug
+    * @return Page|NULL
+    */
+    public function getPageBySlug(string $slug) : ?Page
+    {
+        if(isset(self::$pages[$slug])) {
+            return self::$pages[$slug];
+        }
+        
+        return null;
+    }
+    
+   /**
+    * Retrieves a list of the slugs of all available pages.
+    * @return array
+    */
+    public function getSlugs() : array
+    {
+        return array_keys(self::$pages);
+    }
+    
+   /**
+    * Retrieves all subpages of the current page.
+    * @return \Microsite\Page[]
+    */
+    public function getSubpages()
+    {
+        return $this->subpages;
     }
 }
