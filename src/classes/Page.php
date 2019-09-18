@@ -145,6 +145,7 @@ abstract class Page
     
     public function render() : string
     {
+        $this->processActions();
         $this->initRender();
         
         $this->navigation = $this->ui->createNavigation()->addLimitParameter('action');
@@ -158,6 +159,11 @@ abstract class Page
         $tpl->setVar('content', $this->_render());
         
         return $tpl->render();
+    }
+    
+    protected function processActions()
+    {
+        
     }
     
     protected function initRender()
