@@ -44,7 +44,7 @@ class UI_Navigation_Item
     
     public function isActive() : bool
     {
-        if(!isset($this->isActive())) 
+        if(!isset($this->active)) 
         {
             $this->active = $this->request->urlsMatch(
                 $this->request->getCurrentURL(),
