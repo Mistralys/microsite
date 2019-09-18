@@ -43,4 +43,14 @@ class UI_Navigation_Item
         
         return $this->active; 
     }
+    
+    public function getURL()
+    {
+        return $this->url;
+    }
+    
+    public function getLabel()
+    {
+        return $this->label;
+    }
 }

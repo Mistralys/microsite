@@ -46,13 +46,22 @@ class UI_Template_Document extends UI_Template
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
           	<?php 
+          	    $navItems = $this->site->getNavigation()->getItems();
           	    
+          	    foreach($navItems as $item) 
+          	    {
+          	        $class = '';
+          	        if($item->isActive()) {
+          	            $class = 'active';
+          	        }
+          	        
+          	        ?>
+          	        	<li class="<?php echo $class ?>">
+          	        		<a href="<?php echo $item->getURL() ?>"><?php echo $item->getLabel() ?></a>
+      	        		</li>
+          	        <?php 
+          	    }
           	?>
-            <li class=""><a href="?action=overview">Overview</a></li>
-            <li class=""><a href="?action=appconfigs">App configs</a></li>
-            <li class=""><a href="?action=envcheck">Environment check</a></li>
-            <li class=""><a href="?action=errorcodes">Error codes</a></li>
-            <li class=""><a href="?action=docstrap">JSDoc Management</a></li>
           </ul>
         </div>
       </div>

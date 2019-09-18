@@ -22,6 +22,11 @@ class UI_Navigation
     */
     protected $limitParams = array();
     
+   /**
+    * @var UI_Navigation_Item[]
+    */
+    protected $items = array();
+    
     public function __construct(UI $ui, Site $site)
     {
         $this->ui = $ui;
@@ -38,15 +43,40 @@ class UI_Navigation
         return $this->ui;
     }
     
+   /**
+    * @return UI_Navigation_Item[]
+    */
+    public function getItems()
+    {
+        return $this->items;
+    }
+    
     public function getLimitParams() : array
     {
         return $this->limitParams;
     }
     
+   /**
+    * Adds a parameter to limit the URL detection to,
+    * to make sure only the relevant ones are used
+    * to detect the active navigation item.
+    * 
+    * @param string $name
+    * @return UI_Navigation
+    */
     public function addLimitParameter(string $name) : UI_Navigation
     {
         if(!in_array($name, $this->limitParams)) {
             $this->limitParams[] = $name;
+        }
+        
+        return $this;
+    }
+    
+    public function addLimitParameters(array $names) : UI_Navigation
+    {
+        foreach($names as $name) {
+            $this->addLimitParameter($name);
         }
         
         return $this;

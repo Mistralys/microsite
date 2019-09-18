@@ -62,6 +62,7 @@ abstract class Site
         $this->installFolder = realpath(__DIR__.'/../../');
         $this->request = new \AppUtils\Request();
         $this->ui = new UI($this);
+        $this->navigation = $this->ui->createNavigation()->addLimitParameter('action'); 
         
         $this->initPages();
     }
@@ -70,7 +71,7 @@ abstract class Site
     
     abstract public function getDocumentTitle() : string;
     
-    abstract protected function configureNavigation() : void;
+    abstract protected function initNavigation() : void;
     
    /**
     * This is similar to the document title: it is displayed
@@ -112,6 +113,8 @@ abstract class Site
     
     public function render() : string
     {
+        $this->initUI();
+        
         $tpl = $this->ui->createTemplate('Document');
 
         $page = $this->getActivePage();
@@ -119,6 +122,16 @@ abstract class Site
         $tpl->setVar('page-content', $page->render());
         
         return $tpl->render();
+    }
+    
+    protected function initUI() : void
+    {
+        $this->initNavigation();
+    }
+    
+    public function getNavigation() : UI_Navigation
+    {
+        return $this->navigation;
     }
     
     public function getActivePageID() : string
