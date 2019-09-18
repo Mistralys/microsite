@@ -92,6 +92,8 @@ abstract class Page
     
     abstract public function getPageAbstract() : string;
     
+    abstract public function getNavigationTitle() : string;
+    
     public function render() : string
     {
         $headVars = array(

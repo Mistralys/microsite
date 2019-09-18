@@ -82,7 +82,7 @@ class UI_Navigation
         return $this;
     }
     
-    public function addItem(string $label, string $url) : UI_Navigation_Item
+    public function addURL(string $label, string $url) : UI_Navigation_Item
     {
         $item = new UI_Navigation_Item(
             $this, 
@@ -93,5 +93,10 @@ class UI_Navigation
         $this->items[] = $item;
         
         return $item;
+    }
+    
+    public function addPage(Page $page) : UI_Navigation_Item 
+    {
+         return $this->addURL($page->getNavigationTitle(), $page->buildURL());
     }
 }
