@@ -46,11 +46,12 @@ class UI_Navigation_Item
     {
         if(!isset($this->active)) 
         {
-            $this->active = $this->request->urlsMatch(
+            $this->active = $this->request->createURLComparer(
                 $this->request->getCurrentURL(),
                 $this->url,
                 $this->nav->getLimitParams()
-            );
+            )
+            ->isMatch();
         }
         
         return $this->active; 
