@@ -54,7 +54,7 @@ abstract class Site extends Page
      
         parent::__construct($this);
         
-        if(empty($this->pages)) {
+        if(empty($this->subpages)) {
             throw new \Exception(
                 'No pages found in the [assets/classes/Page] folder.',
                 self::ERROR_NO_PAGES_FOUND

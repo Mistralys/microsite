@@ -31,7 +31,7 @@ abstract class Page
    /**
     * @var Page
     */
-    protected $parentPage;
+    protected $parentPage = null;
     
     /**
      * @var UI_Navigation
@@ -50,11 +50,15 @@ abstract class Page
     
     public function __construct(Site $site, Page $parentPage=null)
     {
-        // avoid setting these for the main site instance,
-        // which inherits from page.
-        if(!$parentPage instanceof Site) 
+        // the parent page can be an instance of site, so we ignore it in this case
+        if($parentPage && !$parentPage instanceof Site) 
         {
             $this->parentPage = $parentPage;
+        }
+
+        // avoid setting these for the main site instance
+        if(!$this instanceof Site) 
+        {
             $this->request = $site->getRequest();
             $this->ui = $site->getUI();
         }
@@ -193,9 +197,17 @@ abstract class Page
     
     public function buildURL($params=array())
     {
-        $params['action'] = $this->getURLName(); 
+        $params['action'] = $this->getSlug(); 
         
-        return $this->site->getWebrootURL().'/?'.http_build_query($params);
+        $url = rtrim($this->site->getWebrootURL(), '/');
+        
+        $query = http_build_query($params);
+        
+        if(!empty($query)) {
+            $url .= '/?'.$query;
+        }
+        
+        return $url;
     }
     
     public function redirectWithErrorMessage($message, $url)
@@ -234,9 +246,7 @@ abstract class Page
     
     protected function initForm()
     {
-        $this->form
-        ->setHidden('action', $this->getURLName())
-        ->setHidden('subaction', $this->subaction);
+        $this->form->setHidden('action', $this->getSlug());
     }
     
     protected function addSubaction($name, $label, $private=false, $default=false)

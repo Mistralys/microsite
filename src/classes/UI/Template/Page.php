@@ -25,29 +25,29 @@ class UI_Template_Page extends UI_Template
     public function _render() : string
     {
         ob_start();
+
+        $this->breadcrumb->display();
         
         $this->createTemplate('Subnav')
         ->setVar('navigation', $this->targetPage->getNavigation())
         ->display();
         
-        $abstract = $this->getPageAbstract();
-        if(!empty($abstract)) 
-        {
-            ?>
-            	<p><?php echo $abstract ?></p>
-            	<hr>
-        	<?php
-        }
-        
-        $title = $this->getPageTitle();
+        $title = $this->targetPage->getPageTitle();
         if(!empty($title)) 
         {
             ?>
             	<h2><?php echo $title ?></h2>
         	<?php 
         }
-        
-        $this->breadcrumb->display();
+
+        $abstract = $this->targetPage->getPageAbstract();
+        if(!empty($abstract))
+        {
+            ?>
+            	<p><?php echo $abstract ?></p>
+            	<hr>
+        	<?php
+        }
         
         echo $this->getVar('content');
         
