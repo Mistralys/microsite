@@ -55,7 +55,7 @@ abstract class Site extends Page
         parent::__construct($this);
         
         if(empty($this->subpages)) {
-            throw new \Exception(
+            throw new Exception(
                 'No pages found in the [assets/classes/Page] folder.',
                 self::ERROR_NO_PAGES_FOUND
             );
@@ -153,7 +153,7 @@ abstract class Site extends Page
             return $page;
         }
         
-        throw new \Exception(
+        throw new Exception(
             sprintf(
                 'The default page [%s] does not exist.',
                 $slug
@@ -167,7 +167,7 @@ abstract class Site extends Page
         $folder = $this->getClassesFolder().'/Page';
         
         if(!file_exists($folder)) {
-            throw new \Exception(
+            throw new Exception(
                 'The [assets/classes/Page] folder does not exist.' ,
                 self::ERROR_PAGES_FOLDER_DOES_NOT_EXIST
             );
@@ -205,6 +205,15 @@ abstract class Site extends Page
         
         $class = get_called_class();
         
-        return new $class($namespace, $webrootFolder, $webrootUrl);
+        try
+        {
+            $obj = new $class($namespace, $webrootFolder, $webrootUrl);
+        }
+        catch(Exception $e)
+        {
+            $e->display();
+        }
+        
+        return $obj;
     }
 }

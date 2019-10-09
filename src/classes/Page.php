@@ -278,7 +278,7 @@ abstract class Page
     */
     public function getSlug() : string
     {
-        $path = $this->getID();
+        $path = strtolower($this->getID());
         
         if($this->hasParent()) {
             $path = $this->parentPage->getSlug().'.'.$path;
@@ -359,7 +359,7 @@ abstract class Page
                 $name = str_replace('.', '_', $this->parentPage->getSlug()).'_'.$name;
             }
             
-            $className = $this->namespace.'\\Page_'.$name;
+            $className = '\\'.$this->namespace.'\\Page_'.$name;
             
             if(!class_exists($className)) {
                 throw new \Exception(
