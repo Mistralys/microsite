@@ -1,11 +1,6 @@
 {
 	"name" : "mistralys/microsite",
-    "repositories":[
-        {
-            "type":"vcs",
-            "url":"https://github.com/Mistralys/application-utils.git"
-        }
-    ],
+    "repositories":[],
     "autoload" : {
 		"psr-4" : 
 		{
