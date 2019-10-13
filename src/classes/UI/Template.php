@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Microsite;
 
-abstract class UI_Template
+abstract class UI_Template implements Interface_Renderable
 {
+    use Traits_Renderable;
+    
    /**
     * @var Site
     */
@@ -61,17 +63,8 @@ abstract class UI_Template
         return null;
     }
     
-    public function render() : string
+    protected function preRender()
     {
         $this->init();
-        
-        return $this->_render();
     }
-    
-    public function display()
-    {
-        echo $this->render();
-    }
-    
-    abstract protected function _render() : string;
 }

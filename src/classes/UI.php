@@ -84,6 +84,11 @@ class UI
         return implode(PHP_EOL, $lines);
     }
     
+   /**
+    * Creates a new instance of a template.
+    * @param string $id
+    * @return UI_Template
+    */
     public function createTemplate(string $id) : UI_Template
     {
         $class = '\Microsite\UI_Template_'.$id;
@@ -93,11 +98,31 @@ class UI
         return $tpl;
     }
     
+   /**
+    * Creates a new data grid instance, which can be used to 
+    * render an HTML table.
+    * 
+    * @return UI_DataGrid
+    */
+    public function createDataGrid() : UI_DataGrid
+    {
+        $grid = new UI_DataGrid($this);
+        return $grid;
+    }
+    
+   /**
+    * Retrieves the site instance.
+    * @return Site
+    */
     public function getSite() : Site
     {
         return $this->site;
     }
     
+   /**
+    * Creates a new navigation instance.
+    * @return UI_Navigation
+    */
     public function createNavigation() : UI_Navigation
     {
         return new UI_Navigation($this, $this->site);

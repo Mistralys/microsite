@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Microsite;
 
-class UI_Form
+class UI_Form implements Interface_Renderable
 {
+    use Traits_Renderable;
+    
    /**
     * @var Page
     */
@@ -20,7 +24,7 @@ class UI_Form
         $this->setHidden($this->id.'_save', 'yes');
     }
     
-    public function setHidden($name, $value)
+    public function setHidden(string $name, string $value)
     {
         if(!isset($this->elements[$name])) {
             $this->elements[$name] = new UI_Form_Element_Hidden($this, $name);
@@ -33,18 +37,18 @@ class UI_Form
         return $this;
     }
     
-    public function addButton($html)
+    public function addButton(string $html) : UI_Form
     {
         $this->buttons[] = $html;
         return $this;
     }
     
-    public function hasContent()
+    public function hasContent() : bool
     {
         return !empty($this->elements);
     }
     
-    public function render()
+    protected function _render() : string
     {
         $html =
         '<form method="POST">';
@@ -71,12 +75,12 @@ class UI_Form
         return $html;
     }
     
-    public function isSubmitted()
+    public function isSubmitted() : bool
     {
         return $this->request->getBool($this->id.'_save');
     }
     
-    public function validate()
+    public function validate() : bool
     {
         if(!$this->isSubmitted()) {
             return false;
@@ -94,13 +98,11 @@ class UI_Form
     
     protected $htmlCounter = 0;
     
-    public function addHTML($html)
+    public function addHTML(string $html) : UI_Form_Element_HTML
     {
         $this->htmlCounter++;
         
         $name = 'form_html_'.$this->htmlCounter; 
-        
-        require_once 'Form/Element/HTML.php';
         
         $el = new UI_Form_Element_HTML($this, $name);
         $el->setHTML($html);
@@ -115,10 +117,8 @@ class UI_Form
     */
     protected $elements;
     
-    public function addSelect($name, $label)
+    public function addSelect(string $name, string $label) : UI_Form_Element_Select
     {
-        require_once 'Form/Element/Select.php';
-        
         $el = new UI_Form_Element_Select($this, $name);
         $el->setLabel($label);
         
@@ -129,13 +129,11 @@ class UI_Form
     
     protected $headerCount = 0;
     
-    public function addHeader($label)
+    public function addHeader(string $label) : UI_Form_Element_Header
     {
         $this->headerCount++;
         
         $name = 'form_header_'.$this->headerCount;
-        
-        require_once 'Form/Element/Header.php';
         
         $el = new UI_Form_Element_Header($this, $name);
         $el->setLabel($label);
@@ -145,10 +143,8 @@ class UI_Form
         return $el;
     }
 
-    public function addString($name, $label)
+    public function addString(string $name, string $label) : UI_Form_Element_String
     {
-        require_once 'Form/Element/String.php';
-        
         $el = new UI_Form_Element_String($this, $name);
         $el->setLabel($label);
         
@@ -162,7 +158,7 @@ class UI_Form
     * @param string $label
     * @return UI_Form_Element_Text
     */
-    public function addText($name, $label)
+    public function addText(string $name, string $label) : UI_Form_Element_Text
     {
         require_once 'Form/Element/Text.php';
         
@@ -174,7 +170,7 @@ class UI_Form
         return $el;
     }
     
-    public function getValues()
+    public function getValues() : array
     {
         $values = array();
         
@@ -185,10 +181,5 @@ class UI_Form
         }
         
         return $values;
-    }
-    
-    public function display()
-    {
-        echo $this->render();
     }
 }

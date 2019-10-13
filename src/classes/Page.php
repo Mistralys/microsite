@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Microsite;
 
-abstract class Page
+abstract class Page implements Interface_Renderable
 {
+    use Traits_Renderable;
+    
     const ERROR_CANNOT_INSTANTIATE_PAGE = 38201;
     
     const ERROR_NOT_A_PAGE_INSTANCE = 38202;
@@ -50,12 +54,8 @@ abstract class Page
     
     public function __construct(Site $site, Page $parentPage=null)
     {
-        // the parent page can be an instance of site, so we ignore it in this case
-        if($parentPage && !$parentPage instanceof Site) 
-        {
-            $this->parentPage = $parentPage;
-        }
-
+        $this->parentPage = $parentPage;
+        
         // avoid setting these for the main site instance
         if(!$this instanceof Site) 
         {
@@ -66,7 +66,7 @@ abstract class Page
         $this->site = $site;
         $this->breadcrumb = new UI_Breadcrumb($this);
         $this->form = new UI_Form($this);
-        
+
         $this->initPages();
     }
     
@@ -80,7 +80,7 @@ abstract class Page
     
     abstract public function getNavigationTitle() : string;
     
-    abstract protected function _render() : string;
+    abstract protected function _renderContent() : string;
     
     public function getSite() : Site
     {
@@ -108,7 +108,7 @@ abstract class Page
         $this->sendAjaxError('No such ajax method');
     }
     
-    protected function sendAjaxSuccess($data=array())
+    protected function sendAjaxSuccess(array $data=array())
     {
         header('Content-Type:application/json; charset=UTF-8');
         
@@ -120,7 +120,7 @@ abstract class Page
         exit;
     }
     
-    protected function sendAjaxError($message)
+    protected function sendAjaxError(string $message)
     {
         header('Content-Type:application/json; charset=UTF-8');
         
@@ -137,26 +137,24 @@ abstract class Page
         return $this->request;
     }
     
-    public function display() : Page
-    {
-        echo $this->render();
-        return $this;
-    }
-    
-    public function render() : string
+    protected function preRender()
     {
         $this->processActions();
+        
         $this->initRender();
         
         $this->navigation = $this->ui->createNavigation()->addLimitParameter('action');
         $this->initNavigation();
         
         $this->initForm();
-        
+    }
+    
+    protected function _render() : string
+    {
         $tpl = $this->ui->createTemplate('Page');
         $tpl->setVar('page', $this);
         $tpl->setVar('breadcrumb', $this->breadcrumb);
-        $tpl->setVar('content', $this->_render());
+        $tpl->setVar('content', $this->_renderContent());
         
         return $tpl->render();
     }
@@ -171,7 +169,7 @@ abstract class Page
         
     }
     
-    public function setSubactionAbstract($abstract)
+    public function setSubactionAbstract(string $abstract) : Page
     {
         $this->subactionAbstract = $abstract;
         return $this;
@@ -192,16 +190,22 @@ abstract class Page
     
     protected $id;
     
-    public function getID()
+    public function getID() : string
     {
-        if(!isset($this->id)) {
-            $this->id =  str_replace($this->site->getNamespace().'\Page_', '', get_class($this));
+        if(!isset($this->id)) 
+        {
+            if($this instanceof Site) {
+                $this->id = 'Site';
+            } else {
+                $tokens = explode('_', get_class($this));
+                $this->id = array_pop($tokens);
+            }
         }
         
         return $this->id;
     }
     
-    public function buildURL($params=array())
+    public function buildURL(array $params=array()) : string
     {
         $params['action'] = $this->getSlug(); 
         
@@ -216,28 +220,28 @@ abstract class Page
         return $url;
     }
     
-    public function redirectWithErrorMessage($message, $url)
+    public function redirectWithErrorMessage(string $message, string $url) : void
     {
         $this->redirectWithMessage(Site_Message::MESSAGE_TYPE_ERROR, $message, $url);
     }
 
-    public function redirectWithInfoMessage($message, $url)
+    public function redirectWithInfoMessage(string $message, string $url) : void
     {
         $this->redirectWithMessage(Site_Message::MESSAGE_TYPE_INFO, $message, $url);
     }
     
-    public function redirectWithSuccessMessage($message, $url)
+    public function redirectWithSuccessMessage(string $message, string $url) : void
     {
         $this->redirectWithMessage(Site_Message::MESSAGE_TYPE_SUCCESS, $message, $url);
     }
     
-    function redirectWithMessage($type, $message, $url)
+    function redirectWithMessage(string $type, string $message, string $url) : void
     {
-        $this->site->addMessage($type, $message);
+        $this->addMessage($type, $message);
         $this->redirect($url);
     }
     
-    public function redirect($url)
+    public function redirect(string $url) : void
     {
         ob_end_clean();
         
@@ -278,9 +282,9 @@ abstract class Page
     */
     public function getSlug() : string
     {
-        $path = strtolower($this->getID());
+        $path = $this->getID();
         
-        if($this->hasParent()) {
+        if($this->hasParent() && !$this->parentPage instanceof Site) {
             $path = $this->parentPage->getSlug().'.'.$path;
         }
         
@@ -306,27 +310,27 @@ abstract class Page
         return $this->ui;
     }
 
-    public function addWarning($message) : Site_Message
+    public function addWarning(string $message) : Site_Message
     {
         return $this->addMessage(Site_Message::MESSAGE_TYPE_WARNING, $message);
     }
     
-    public function addError($message) : Site_Message
+    public function addError(string $message) : Site_Message
     {
         return $this->addMessage(Site_Message::MESSAGE_TYPE_ERROR, $message);
     }
     
-    public function addInfo($message) : Site_Message
+    public function addInfo(string $message) : Site_Message
     {
         return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
     }
     
-    public function addNotice($message) : Site_Message
+    public function addNotice(string $message) : Site_Message
     {
         return $this->addMessage(Site_Message::MESSAGE_TYPE_INFO, $message);
     }
     
-    protected function addMessage($type, $message) : Site_Message
+    protected function addMessage(string $type, string $message) : Site_Message
     {
         $message = new Site_Message($type, $message);
         
@@ -340,10 +344,9 @@ abstract class Page
      *
      * @param string $pagesFolder
      * @param Page|NULL $parentPage
-     * @throws \Exception
-     * @return Page[]
+     * @throws Exception
      */
-    public function initPages()
+    public function initPages() : void
     {
         $pagesFolder = $this->getOwnFolder();
 
@@ -355,14 +358,15 @@ abstract class Page
         
         foreach($names as $name)
         {
-            if($this->parentPage) {
-                $name = str_replace('.', '_', $this->parentPage->getSlug()).'_'.$name;
+            if(!$this instanceof Site) {
+                $name = str_replace('.', '_', $this->getSlug()).'_'.$name;
             }
             
-            $className = '\\'.$this->namespace.'\\Page_'.$name;
+            $className = '\\'.$this->site->getNamespace().'\\Page_'.$name;
             
-            if(!class_exists($className)) {
-                throw new \Exception(
+            if(!class_exists($className)) 
+            {
+                throw new Exception(
                     sprintf(
                         'Cannot initialize page [%s], the class [%s] was not found.',
                         $name,
@@ -374,11 +378,13 @@ abstract class Page
             
             $page = new $className($this->site, $this);
             
-            if(!$page instanceof Page) {
-                throw new \Exception(
+            if(!$page instanceof Page) 
+            {
+                throw new Exception(
                     sprintf(
-                        'The page [%s] is not a \Microsite\Page class instance.',
-                        $className
+                        'The page [%s] is not a [%s] class instance.',
+                        $className,
+                        __CLASS__
                     ),
                     self::ERROR_NOT_A_PAGE_INSTANCE
                 );

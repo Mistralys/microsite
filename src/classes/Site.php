@@ -108,6 +108,11 @@ abstract class Site extends Page
         return $tpl->render();
     }
     
+    protected function _renderContent() : string
+    {
+        // unused for the site.
+    }
+    
     protected function initRender()
     {
         $this->getActivePage()->handleAJAX();

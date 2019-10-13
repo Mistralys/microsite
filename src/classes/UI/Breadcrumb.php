@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Microsite;
 
-class UI_Breadcrumb
+class UI_Breadcrumb implements Interface_Renderable
 {
+    use Traits_Renderable;
+    
    /**
     * @var Page
     */
     protected $page;
     
+   /**
+    * @var array[]
+    */
     protected $items = array();
     
     public function __construct(Page $page)
@@ -28,7 +33,7 @@ class UI_Breadcrumb
         return $this;
     }
     
-    public function render()
+    protected function _render() : string
     {
         if(empty($this->items)) {
             return '';
@@ -60,11 +65,6 @@ class UI_Breadcrumb
         '</ol>';
             
         return $html;
-    }
-    
-    public function display()
-    {
-        echo $this->render();
     }
     
     public function addHomepage() : UI_Breadcrumb
