@@ -14,7 +14,7 @@
     "prefer-stable": true,
 	"require" : {
         "mistralys/application-utils" : "dev-master",
-        "mistralys/localization" : "dev-master",
+        "mistralys/application-localization" : "dev-master",
 		"twbs/bootstrap" : "~3",
 		"components/jquery" : "~3",
 		"fortawesome/font-awesome" : "~4"
