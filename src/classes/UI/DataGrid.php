@@ -51,7 +51,14 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
         $this->ui = $ui;
         $this->id = $id;
         
+        $this->log('Created new data grid.');
+        
         $this->addClass('table');
+    }
+    
+    public function getID() : string
+    {
+        return $this->id;
     }
    
    /**
@@ -73,6 +80,8 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
                 self::ERROR_CANNOT_ADD_COLS_AFTER_ROWS
             );
         }
+        
+        $this->log(sprintf('Adding column [%s].', $dataKey));
         
         $column = new UI_DataGrid_Column($this, $dataKey, $label);
 
@@ -134,7 +143,11 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
             $values = $values[0];
         }
         
-        $entry = new UI_DataGrid_Row($this, $values);
+        $number = count($this->rows) + 1;
+        
+        $this->log(sprintf('Adding row [%s].', $number));
+        
+        $entry = new UI_DataGrid_Row($this, $number, $values);
         
         $this->rows[] = $entry;
         
@@ -165,7 +178,7 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
     
     protected function _render() : string
     {
-        $this->log('Rending the grid: Found ['.count($this->rows).'] and ['.count($this->columns).'] columns.');
+        $this->log('Rending the grid: Found ['.count($this->rows).'] rows and ['.count($this->columns).'] columns.');
         
         $html = $this->ui->createTemplate('DataGrid')
         ->setVar('grid', $this)

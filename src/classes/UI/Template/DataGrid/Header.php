@@ -22,9 +22,19 @@ class UI_Template_DataGrid_Header extends UI_Template
         
         ?>
             <thead>
-            	<?php 
-            	    
-            	?>
+            	<tr>
+                	<?php
+                	    
+                	   $columns = $this->grid->getColumns();
+                	    
+                	    foreach($columns as $column) 
+                	    {
+                	        ?>
+                	        	<th><?php echo $column->getLabel() ?></th>
+                	        <?php 
+                	    }
+                	?>
+            	</tr>
             </thead>
         <?php
             

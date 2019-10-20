@@ -44,6 +44,7 @@ class UI_DataGrid_Row_Cell implements Interface_Renderable, Interface_Classable
     public function setValue($value) : UI_DataGrid_Row_Cell
     {
         $this->value = $value;
+        return $this;
     }
     
     protected function _render() : string

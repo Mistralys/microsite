@@ -26,21 +26,41 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
     */
     protected $cells = array();
     
-    public function __construct(UI_DataGrid $grid, array $data=array())
+   /**
+    * @var integer
+    */
+    protected $number = 0;
+    
+    public function __construct(UI_DataGrid $grid, int $number, array $data=array())
     {
         $this->grid = $grid;
         $this->data = $data;
+        $this->number = $number;
         
         $this->initCells();
     }
     
+    public function getNumber() : int
+    {
+        return $this->number;
+    }
+    
     protected function initCells()
     {
-        $cols = $this->grid->getColumns();
+        $this->log('Initializing cells.');
         
-        foreach($cols as $col) 
+        $cols = array_values($this->grid->getColumns());
+        $total = count($cols);
+        
+        for($i=0; $i < $total; $i++) 
         {
-            $this->cells[$col->getName()] = new UI_DataGrid_Row_Cell($this, $col); 
+            $col = $cols[$i];
+            $value = $this->data[$i];
+            
+            $cell = new UI_DataGrid_Row_Cell($this, $col);
+            $cell->setValue($value);
+            
+            $this->cells[$col->getName()] = $cell; 
         }
     }
     
@@ -73,6 +93,8 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
     
     protected function _render() : string
     {
+        $this->log('Rendering the row.');
+        
         ob_start();
         ?>
         	<tr>
@@ -87,4 +109,14 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
         
         return ob_get_clean();
     }
+    
+    protected function log($message) : void
+    {
+        $this->grid->log(sprintf(
+            'Row [%03d] | %s',
+            $this->getNumber(),
+            $message
+        ));
+    }
+
 }

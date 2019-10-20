@@ -27,7 +27,7 @@ class UI_Template_DataGrid_Body extends UI_Template
             	<?php 
                 	foreach($rows as $row) 
                 	{
-                	    $row->display();
+                	    echo $row->render();
                 	}
             	?>
             </tbody>
