@@ -51,6 +51,8 @@ abstract class Site extends Page
         
         $this->request = new \AppUtils\Request();
         $this->ui = new UI($this);
+        
+        $this->initLocales();
      
         parent::__construct($this);
         
@@ -60,6 +62,52 @@ abstract class Site extends Page
                 self::ERROR_NO_PAGES_FOUND
             );
         }
+    }
+    
+    protected function initLocales()
+    {
+        \AppLocalize\Localization::addAppLocale('de_DE');
+        \AppLocalize\Localization::addAppLocale('fr_FR');
+        
+        \AppLocalize\Localization::addSourceFolder(
+            'microsite-server',
+            'PHP class strings',
+            'Microsite',
+            $this->installFolder.'/localization',
+            $this->installFolder.'/src'
+        );
+
+        \AppLocalize\Localization::addSourceFolder(
+            'microsite-client',
+            'JavaScript strings',
+            'Microsite',
+            $this->installFolder.'/localization',
+            $this->installFolder.'/js'
+        );
+        
+        \AppLocalize\Localization::addSourceFolder(
+            $this->getNamespace().'-classes',
+            'PHP class strings',
+            $this->getNamespace(),
+            $this->webrootFolder.'/localization',
+            $this->webrootFolder.'/assets'
+        );
+        
+        \AppLocalize\Localization::addSourceFolder(
+            'microsite',
+            'JavaScript strings',
+            $this->getNamespace(),
+            $this->webrootFolder.'/localization',
+            $this->webrootFolder.'/js'
+        );
+        
+        \AppLocalize\Localization::configure(
+            $this->webrootFolder.'/localization/cache.json',
+            $this->webrootFolder.'/js'
+        );
+        
+        // FIXME implement this selection
+        // \AppLocalize\Localization::selectAppLocale('de_DE');
     }
 
     abstract public function getDocumentTitle() : string;
