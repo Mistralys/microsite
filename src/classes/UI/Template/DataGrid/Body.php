@@ -25,13 +25,14 @@ class UI_Template_DataGrid_Body extends UI_Template
         ?>
             <tbody>
             	<?php 
-                	foreach($rows as $row) {
+                	foreach($rows as $row) 
+                	{
                 	    $row->display();
                 	}
             	?>
             </tbody>
         <?php
-            
+        
         return ob_get_clean();
     }
 }

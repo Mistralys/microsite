@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Microsite;
 
-abstract class UI_Template implements Interface_Renderable
+abstract class UI_Template implements Interface_Renderable, Interface_Loggable
 {
     use Traits_Renderable;
+    use Traits_Loggable;
     
    /**
     * @var Site
@@ -25,17 +26,30 @@ abstract class UI_Template implements Interface_Renderable
     */
     protected $activePage;
     
-    public function __construct(UI $ui)
+   /**
+    * @var string
+    */
+    protected $id;
+    
+    public function __construct(UI $ui, string $id)
     {
         $this->site = $ui->getSite();
+        $this->id = $id;
         $this->ui = $ui;
         $this->activePage = $this->site->getActivePage();
     }
     
-    protected function init()
+    public function getID() : string
     {
-        
+        return $this->id;
     }
+
+   /**
+    * Initializes the template: this is where variables
+    * are fetched and verfied as needed, before the template
+    * is rendered.
+    */
+    abstract protected function init();
     
     public function createTemplate($id) : UI_Template
     {
@@ -63,8 +77,17 @@ abstract class UI_Template implements Interface_Renderable
         return null;
     }
     
+    public function getLogPrefix() : string
+    {
+        return 'Template ['.$this->getID().']';
+    }
+    
     protected function preRender()
     {
+        $this->log('Initializing the template for rendering.');
+        
         $this->init();
+        
+        $this->log('Rendering the template.');
     }
 }

@@ -39,6 +39,8 @@ class UI_Template_DataGrid extends UI_Template
             </table>
         <?php
             
-        return ob_get_clean();
+        $html = ob_get_clean();
+        
+        return $html;
     }
 }

@@ -12,10 +12,11 @@ namespace Microsite;
  * @subpackage UI
  * @author Sebastian Mordziol <s.mordziol@mistralys.eu>
  */
-class UI_DataGrid implements Interface_Renderable, Interface_Classable
+class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interface_Loggable
 {
     use Traits_Renderable;
     use Traits_Classable;
+    use Traits_Loggable;
     
     const ERROR_COLUMN_ALREADY_EXISTS = 39701;
     
@@ -40,9 +41,15 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable
     */
     protected $rows = array();
     
-    public function __construct(UI $ui)
+   /**
+    * @var string
+    */
+    protected $id;
+    
+    public function __construct(UI $ui, string $id)
     {
         $this->ui = $ui;
+        $this->id = $id;
         
         $this->addClass('table');
     }
@@ -158,9 +165,13 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable
     
     protected function _render() : string
     {
-        return $this->ui->createTemplate('DataGrid')
+        $this->log('Rending the grid: Found ['.count($this->rows).'] and ['.count($this->columns).'] columns.');
+        
+        $html = $this->ui->createTemplate('DataGrid')
         ->setVar('grid', $this)
         ->render();
+        
+        return $html;
     }
     
    /**
@@ -179,5 +190,10 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable
     public function getRows()
     {
         return $this->rows;
+    }
+ 
+    public function getLogPrefix(): string
+    {
+        return 'DataGrid ['.$this->getID().']';
     }
 }

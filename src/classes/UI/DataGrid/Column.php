@@ -70,6 +70,7 @@ class UI_DataGrid_Column implements \AppUtils\Interface_Optionable
     
     public function filterValue($value)
     {
+        // FIXME implement filtering
         return $value;
     }
 }

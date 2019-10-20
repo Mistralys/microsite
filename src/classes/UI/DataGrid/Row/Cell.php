@@ -30,6 +30,11 @@ class UI_DataGrid_Row_Cell implements Interface_Renderable, Interface_Classable
         $this->column = $column;
     }
     
+    public function getName() : string
+    {
+        return $this->column->getName();
+    }
+    
    /**
     * Sets the value of the cell.
     * 

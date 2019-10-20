@@ -91,9 +91,9 @@ class UI
     */
     public function createTemplate(string $id) : UI_Template
     {
-        $class = '\Microsite\UI_Template_'.$id;
+        $class = '\Microsite\UI_Template_'.str_replace('/', '_', $id);
         
-        $tpl = new $class($this);
+        $tpl = new $class($this, $id);
         
         return $tpl;
     }
@@ -102,11 +102,16 @@ class UI
     * Creates a new data grid instance, which can be used to 
     * render an HTML table.
     * 
+    * @param string $id ID to recognize the grid by. Must be unique for each grid.
     * @return UI_DataGrid
     */
-    public function createDataGrid() : UI_DataGrid
+    public function createDataGrid(string $id='') : UI_DataGrid
     {
-        $grid = new UI_DataGrid($this);
+        if(empty($id)) {
+            $id = nextJSID();
+        }
+        
+        $grid = new UI_DataGrid($this, $id);
         return $grid;
     }
     

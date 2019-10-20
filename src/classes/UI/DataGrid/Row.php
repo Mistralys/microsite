@@ -73,15 +73,18 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
     
     protected function _render() : string
     {
+        ob_start();
         ?>
         	<tr>
         		<?php
             		foreach($this->cells as $cell) 
             		{
-            		    $cell->render();
+            		    echo $cell->render();
             		}
         		?>
         	</tr>
         <?php 
+        
+        return ob_get_clean();
     }
 }
