@@ -58,7 +58,6 @@ trait Traits_Renderable
     public function display() : void
     {
         echo $this->render();
-        exit;
     }
     
     public function __toString()
