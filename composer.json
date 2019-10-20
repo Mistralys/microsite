@@ -6,6 +6,9 @@
 		{
 			"Microsite\\" : "src/classes"
 		},
+		"files" : [
+			"src/functions.php"
+		],
 		"classmap" : [
 			"src/classes"
 		]
