@@ -18,7 +18,7 @@
 	"require" : {
         "mistralys/application-utils" : "dev-master",
         "mistralys/application-localization" : "dev-master",
-		"twbs/bootstrap" : "~3",
+		"twbs/bootstrap" : "~4",
 		"components/jquery" : "~3",
 		"fortawesome/font-awesome" : "~4"
 	},
