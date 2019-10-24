@@ -38,3 +38,12 @@ vertical-align:middle !important;
 .table TH.align-right{
 text-align:right;
 }
+
+
+/*------------------------------------------------------------
+  DATA GRIDS
+  ------------------------------------------------------------ */
+  
+.multiselect-checkbox{
+width:1px;
+}

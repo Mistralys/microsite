@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Microsite;
 
+use AppUtils\Interface_Optionable;
+use AppUtils\Traits_Optionable;
+
 /**
  * HTML table renderer: provides an easy to use API to configure the
  * grid, and it handles all the management and rendering.
@@ -12,11 +15,12 @@ namespace Microsite;
  * @subpackage UI
  * @author Sebastian Mordziol <s.mordziol@mistralys.eu>
  */
-class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interface_Loggable
+class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interface_Loggable, Interface_Optionable
 {
     use Traits_Renderable;
     use Traits_Classable;
     use Traits_Loggable;
+    use Traits_Optionable;
     
     const ERROR_COLUMN_ALREADY_EXISTS = 39701;
     
@@ -25,6 +29,10 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
     const ERROR_CANNOT_ADD_ROW_BEFORE_COLUMNS = 39703;
     
     const ERROR_CANNOT_RENDER_WITHOUT_COLUMNS = 39704;
+    
+    const ERROR_ACTION_ALREADY_EXISTS = 39705;
+    
+    const ERROR_UNKNOWN_ACTION_NAME = 39706;
     
    /**
     * @var UI
@@ -46,10 +54,26 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
     */
     protected $id;
     
+   /**
+    * @var \AppUtils\Request
+    */
+    protected $request;
+    
+   /**
+    * @var array
+    */
+    protected $requestVars = array();
+    
+   /**
+    * @var UI_DataGrid_Action[]
+    */
+    protected $actions = array();
+    
     public function __construct(UI $ui, string $id)
     {
         $this->ui = $ui;
         $this->id = $id;
+        $this->request = new \AppUtils\Request();
         
         $this->log('Created new data grid.');
         
@@ -60,7 +84,7 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
     {
         return $this->id;
     }
-   
+    
    /**
     * Adds a new column to the grid, and returns the instance
     * to configure it further as needed.
@@ -174,6 +198,8 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
                 self::ERROR_CANNOT_RENDER_WITHOUT_COLUMNS
             );
         }
+        
+        $this->setRequestVar($this->getID().'_submit', 'yes');
     }
     
     protected function _render() : string
@@ -209,4 +235,235 @@ class UI_DataGrid implements Interface_Renderable, Interface_Classable, Interfac
     {
         return 'DataGrid ['.$this->getID().']';
     }
+    
+   /**
+    * Enables the multi-selection feature: adds controls
+    * to select items in the list.
+    * 
+    * @param bool $enable Whether to enable or disable the feature.
+    * @return UI_DataGrid
+    */
+    public function enableMultiselect(bool $enable=true) : UI_DataGrid
+    {
+        $this->setOption('multiselect', $enable);
+        return $this;
+    }
+ 
+    public function getDefaultOptions(): array
+    {
+        return array(
+            'multiselect' => false,
+            'hover' => false
+        );
+    }
+    
+    public function hasMultiselect() : bool
+    {
+        return $this->getOption('multiselect') === true;
+    }
+    
+    public function enableHover(bool $enable=true) : UI_DataGrid
+    {
+        $this->setOption('hover', $enable);
+        return $this;
+    }
+    
+    public function getFormName() : string
+    {
+        return $this->getID().'-form';
+    }
+    
+    public function setRequestVar(string $name, string $value) : UI_DataGrid
+    {
+        $this->requestVars[$name] = $value;
+        return $this;
+    }
+    
+    public function setRequestVars(array $vars) : UI_DataGrid
+    {
+        foreach($vars as $name => $value) 
+        {
+            $this->setRequestVar($name, $value);
+        }
+        
+        return $this;
+    }
+    
+    public function getRequestVars() : array
+    {
+        return $this->requestVars;
+    }
+
+   /**
+    * Adds a list action that can be applied to a selection of items
+    * in the list.
+    * 
+    * Note: automatically enables the multiselect feature.
+    * 
+    * @param string $name
+    * @param string $label
+    * @param callable $callback The callback to run when this action is submitted.
+    * @throws Exception
+    * @return UI_DataGrid_Action
+    * 
+    * @see UI_DataGrid::ERROR_ACTION_ALREADY_EXISTS
+    */
+    public function addAction(string $name, string $label, $callback) : UI_DataGrid_Action
+    {
+        $this->enableMultiselect();
+        
+        if(isset($this->actions[$name])) 
+        {
+            throw new Exception(
+                sprintf('The data grid action [%s] already exists in the data grid [%s].', $name, $this->getID()),
+                null,
+                self::ERROR_ACTION_ALREADY_EXISTS
+            );
+        }
+        
+        $this->actions[$name] = new UI_DataGrid_Action($this, $name, $label, $callback);
+        
+        return $this->actions[$name];
+    }
+    
+    public function hasActions() : bool
+    {
+        return $this->hasMultiselect() && !empty($this->actions);
+    }
+    
+   /**
+    * Retrieves all action instances that were added to the grid.
+    * 
+    * @return \Microsite\UI_DataGrid_Action[]
+    */
+    public function getActions() 
+    {
+        return $this->actions;
+    }
+    
+    public function isSubmitted() : bool
+    {
+        return $this->request->getBool($this->getID().'_submit'); 
+    }
+    
+    public function start() : void
+    {
+        if(!$this->isSubmitted()) {
+            return;
+        }
+        
+        $this->checkActions();
+    }
+    
+   /**
+    * Retrieves the names of all actions that have been
+    * added to the grid.
+    * 
+    * @return string[]
+    */
+    public function getActionNames() : array
+    {
+        return array_keys($this->actions);
+    }
+    
+   /**
+    * Retrieves an action by its name.
+    * 
+    * @param string $name
+    * @throws Exception
+    * @return \Microsite\UI_DataGrid_Action
+    * 
+    * @see UI_DataGrid::ERROR_UNKNOWN_ACTION_NAME
+    */
+    public function getActionByName(string $name)
+    {
+        if(isset($this->actions[$name])) {
+            return $this->actions[$name];
+        }
+        
+        throw new Exception(
+            sprintf('Unknown grid action [%s] in grid [%s].', $name, $this->getID()),
+            null,
+            self::ERROR_UNKNOWN_ACTION_NAME
+        );
+    }
+    
+    protected function checkActions()
+    {
+        if(!$this->hasMultiselect()) {
+            return;
+        }
+        
+         $actionName = $this->request->registerParam('action')
+         ->setEnum($this->getActionNames())
+         ->get();
+         
+         if(empty($actionName)) {
+             return;
+         }
+         
+         $this->getActionByName($actionName)->start();
+    }
+    
+   /**
+    * Retrieves a list of all values selected in the list.
+    * 
+    * NOTE: Will return an empty array if the multiselect
+    * option is not enabled, and if the list has not been
+    * submitted yet.
+    * 
+    * @return string[]
+    */
+    public function getSelectedValues() : array
+    {
+        if(!$this->hasMultiselect() || !$this->isSubmitted()) {
+            return array();
+        }
+        
+        $values = $this->request->registerParam('primaries')->setArray()->get();
+        
+        $result = array();
+        $valid = $this->getPrimaryValues();
+        
+        // to avoid false data being submitted, we only keep the
+        // values that are actually present in the list.
+        foreach($values as $value)
+        {
+            if(in_array($value, $valid)) {
+                $result[] = $value;
+            }
+        }
+        
+        return $result;
+    }
+    
+   /**
+    * Retrieves a list of all available primary values
+    * in the list.
+    * 
+    * Note: Returns an empty array if the multiselect
+    * feature has not been enabled.
+    * 
+    * @return string[]
+    */
+    public function getPrimaryValues()
+    {
+        if(!$this->hasMultiselect()) {
+            return array();
+        }
+        
+        $result = array();
+        
+        foreach($this->rows as $row) 
+        {
+            $value = $row->getPrimaryValue();
+            
+            if($value !== '' && !in_array($value, $result)) {
+                $result[] = $row->getPrimaryValue();
+            }
+        }
+        
+        return $result;
+    }
 }
+    

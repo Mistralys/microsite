@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Microsite;
 
+use SPEX\Exception;
+
 class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
 {
     use Traits_Renderable;
     use Traits_Classable;
     
     const ERROR_CANNOT_SET_VALUE_UNKNOWN_KEY = 39801;
+    
+    const ERROR_NO_PRIMARY_VALUE_SET = 39802;
     
    /**
     * @var array
@@ -30,6 +34,11 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
     * @var integer
     */
     protected $number = 0;
+    
+   /**
+    * @var string
+    */
+    protected $primary = '';
     
     public function __construct(UI_DataGrid $grid, int $number, array $data=array())
     {
@@ -97,8 +106,19 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
         
         ob_start();
         ?>
-        	<tr>
+        	<tr<?php if($this->hasPrimaryValue()) { echo ' data-primary="'.$this->getPrimaryValue().'"'; } ?>>
         		<?php
+        		    if($this->grid->hasMultiselect())
+        		    {
+        		        $this->requirePrimaryValue();
+        		        
+        		        ?>
+        		        	<td class="multiselect-checkbox">
+        		        		<input type="checkbox" name="primaries[]" value="<?php echo $this->getPrimaryValue() ?>"/>
+        		        	</td>
+        		        <?php 
+        		    }
+        		
             		foreach($this->cells as $cell) 
             		{
             		    echo $cell->render();
@@ -119,4 +139,32 @@ class UI_DataGrid_Row implements Interface_Renderable, Interface_Classable
         ));
     }
 
+    public function setPrimaryValue(string $value) : UI_DataGrid_Row
+    {
+        $this->primary = $value;
+        return $this;
+    }
+    
+    public function getPrimaryValue() : string
+    {
+        return $this->primary;
+    }
+    
+    public function hasPrimaryValue() : bool
+    {
+        return !empty($this->primary);
+    }
+    
+    protected function requirePrimaryValue()
+    {
+        if($this->hasPrimaryValue()) {
+            return;
+        }
+        
+        throw new Exception(
+            sprintf('The row [%s] has no primary value.', $this->number),
+            'The multiselect feature is enabled: all rows need a primary value, which can be set using the setPrimaryValue() method.',
+            self::ERROR_NO_PRIMARY_VALUE_SET
+        );
+    }
 }

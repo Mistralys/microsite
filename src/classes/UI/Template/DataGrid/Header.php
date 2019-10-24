@@ -24,6 +24,15 @@ class UI_Template_DataGrid_Header extends UI_Template
             <thead>
             	<tr>
                 	<?php
+                	
+                	   if($this->grid->hasMultiselect())
+                	   {
+                	       ?>
+                	       	   <th>
+                	       	       <input type="checkbox" data-toggle="grid-checkboxes"/>
+                	       	   </th>
+                	       <?php 
+                	   }
                 	    
                 	   $columns = $this->grid->getColumns();
                 	    
