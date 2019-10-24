@@ -68,6 +68,21 @@ abstract class Page implements Interface_Renderable
         $this->form = new UI_Form($this);
 
         $this->initPages();
+        $this->init();
+    }
+    
+   /**
+    * Called right after the constructor completes.
+    * This can be extended to add custom page 
+    * initializations that can be done at this stage.
+    * 
+    * Otherwise, prefer the method {@link \Microsite\Page::processActions()}.
+    * 
+    * @see \Microsite\Page::processActions()
+    */
+    protected function init()
+    {
+        // can be extended
     }
     
     abstract protected function initNavigation() : void;
