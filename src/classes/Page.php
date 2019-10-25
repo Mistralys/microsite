@@ -220,9 +220,18 @@ abstract class Page implements Interface_Renderable
         return $this->id;
     }
     
+    public function buildSlugURL(string $slug, array $params=array()) : string
+    {
+        $params['slug'] = $slug;
+        
+        return $this->buildURL($params);
+    }
+    
     public function buildURL(array $params=array()) : string
     {
-        $params['action'] = $this->getSlug(); 
+        if(!isset($params['slug'])) {
+            $params['slug'] = $this->getSlug(); 
+        }
         
         $url = rtrim($this->site->getWebrootURL(), '/');
         

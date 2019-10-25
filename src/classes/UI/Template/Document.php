@@ -13,7 +13,7 @@ class UI_Template_Document extends UI_Template
         $this->ui->addSiteScript('css/ui.css');
         $this->ui->addSiteScript('js/ajax.js');
         $this->ui->addVendorScript('components/jquery', 'jquery.min.js');
-        $this->ui->addVendorScript('twbs/bootstrap', 'dist/js/bootstrap.min.js');
+        $this->ui->addVendorScript('twbs/bootstrap', 'dist/js/bootstrap.bundle.min.js');
     }
     
     public function _render() : string
@@ -32,21 +32,16 @@ class UI_Template_Document extends UI_Template
     ?>
   </head>
   <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="<?php echo $this->site->getDefaultPage()->buildURL() ?>">
-            <?php echo $this->site->getNavigationTitle() ?>
-          </a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
+  	<header>
+    <nav class="navbar navbar-dark navbar-expand-md fixed-top bg-dark">
+      <a class="navbar-brand" href="<?php echo $this->site->getDefaultPage()->buildURL() ?>">
+        <?php echo $this->site->getNavigationTitle() ?>
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+  		<span class="navbar-toggler-icon"></span>
+	  </button>
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav mr-auto">
           	<?php 
           	    $navItems = $this->site->getNavigation()->getItems();
           	    
@@ -58,18 +53,17 @@ class UI_Template_Document extends UI_Template
           	        }
           	        
           	        ?>
-          	        	<li class="<?php echo $class ?>">
-          	        		<a href="<?php echo $item->getURL() ?>"><?php echo $item->getLabel() ?></a>
+          	        	<li class="nav-item <?php echo $class ?>">
+          	        		<a href="<?php echo $item->getURL() ?>" class="nav-link"><?php echo $item->getLabel() ?></a>
       	        		</li>
           	        <?php 
           	    }
-          	?>
-          </ul>
-        </div>
+          ?>
+        </ul>
       </div>
     </nav>
-
-    <div class="container" style="margin-top:80px;">
+    </header>
+	<main role="main">
         <?php
             if($this->site->hasMessages()) 
             {
@@ -88,7 +82,7 @@ class UI_Template_Document extends UI_Template
             
             echo $this->getVar('page-content'); 
         ?>
-    </div>
+    </main>
   </body>
 </html>
 		<?php
