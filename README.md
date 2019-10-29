@@ -1,6 +1,6 @@
 # Microsite
 
-Base skeleton for custom PHP-based tools with a web based interface based on Bootstrap 4.
+Skeleton for custom PHP-based tools with a Bootstrap 4 web interface.
 
 Microsite was developed specifically to have a common featureset for the kind of custom tools a PHP developer needs in his daily work. It can be installed via composer, and offers most features a web interface needs. It does not support user authentication: that's beyond the scope of the package.
 
