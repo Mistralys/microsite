@@ -48,12 +48,14 @@ abstract class Site extends Page
         $this->webrootUrl = $webrootUrl;
         $this->namespace = $namespace;
         $this->installFolder = realpath(__DIR__.'/../../');
+
+        session_start();
         
         $this->request = new \AppUtils\Request();
         $this->ui = new UI($this);
         
         $this->initLocales();
-     
+        
         parent::__construct($this);
         
         if(empty($this->subpages)) {
@@ -268,5 +270,32 @@ abstract class Site extends Page
         }
         
         return $obj;
+    }
+
+   /**
+    * Retrieves the URL to view a media file on disk.
+    * 
+    * Generates a safe URL without file path information.
+    * The file can be located anywhere on disk, but must
+    * be readable.
+    * 
+    * @param string $mediaPath Path to the media file to display
+    * @return string
+    */
+    public function getMediaURL(string $mediaPath) : string
+    {
+        $key = md5($mediaPath);
+        
+        if(!isset($_SESSION['displaymedia'])) {
+            $_SESSION['displaymedia'] = array();
+        }
+        
+        $_SESSION['displaymedia'][$key] = array(
+            'path' => $mediaPath
+        );
+        
+        $display = $this->getPageBySlug('DisplayMedia');
+        
+        return $display->buildURL(array('media' => $key));
     }
 }
