@@ -28,6 +28,27 @@ class UI
         return $this;
     }
     
+    public function addJSHeadCall(string $call) : UI
+    {
+        $args = func_get_args();
+        $call = array_shift($args);
+        $argString = '';
+        
+        if(!empty($call))
+        {
+            $parts = array();
+            foreach($args as $part) {
+                $parts[] = json_encode($part);
+            }
+            
+            $argString = implode(', ', $parts);
+        }
+
+        $call .= '('.$argString.')';
+        
+        return $this->addJSHead($call);
+    }
+    
     public function addJSOnload(string $statement) : UI
     {
         $this->jsOnload[] = rtrim($statement, ';');
