@@ -28,7 +28,14 @@ abstract class Page_DisplayMedia extends Page
         
         $config = $_SESSION['displaymedia'][$key];
         
-        \AppUtils\FileHelper::sendFile($config['path'], null, false);
+        $path = $this->handleMediaPath($config['path']);
+        
+        \AppUtils\FileHelper::sendFile($path, null, false);
+    }
+    
+    protected function handleMediaPath(string $path) : string
+    {
+        return $path;
     }
     
     public function getPageAbstract(): string { return ''; }
