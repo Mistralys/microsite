@@ -24,7 +24,7 @@ class UI_Form_Element_String extends UI_Form_Element
         return $this->setAttribute('type', $type);
     }
     
-    protected function _render()
+    protected function _renderElement() : string
     {
         $this->addClass('form-control');
         $this->setAttribute('value', $this->getValue());

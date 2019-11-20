@@ -23,7 +23,7 @@ class UI_Form_Element_Select extends UI_Form_Element
         return $option;
     }
     
-    protected function _render()
+    protected function _renderElement() : string
     {
         $this->addClass('form-control');
         

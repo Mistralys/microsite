@@ -6,7 +6,7 @@ class UI_Form_Element_HTML extends UI_Form_Element
 {
     protected $html = '';
     
-    protected function _render()
+    protected function _renderElement() : string
     {
         return $this->html;
     }
