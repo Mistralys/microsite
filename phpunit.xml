@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false">
+    <testsuites>
+        <testsuite name="Maileditor Tests">
+            <directory suffix=".php">./tests/</directory>
+            <exclude>./tests/config</exclude>
+            <exclude>./tests/assets</exclude>
+        </testsuite>
+        <testsuite name="Application Framework Tests">
+            <directory suffix=".php">./vendor/1and1/application_framework/tests/testsuites</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

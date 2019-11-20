@@ -4,13 +4,15 @@
     "autoload" : {
 		"psr-4" : 
 		{
-			"Microsite\\" : "src/classes"
+			"Microsite\\" : "src/classes",
+			"MicrositeTestSite\\" : "tests/assets/classes"
 		},
 		"files" : [
 			"src/functions.php"
 		],
 		"classmap" : [
-			"src/classes"
+			"src/classes",
+			"tests/assets/classes"
 		]
 	},
     "minimum-stability": "dev",
