@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Microsite;
 
-abstract class UI_Form_Element
+abstract class UI_Form_Element implements Interface_Renderable
 {
+    use Traits_Renderable;
+
    /**
     * @var UI_Form
     */
@@ -44,23 +48,25 @@ abstract class UI_Form_Element
         
     }
 
-    public function setLabel($label)
+    public function setLabel(string $label)
     {
         $this->label = $label;
+        return $this;
     }
     
     public function setValue($value)
     {
         $this->value = $value;
+        return $this;
     }
     
-    public function render()
+    protected function _render() : string
     {
         if($this->errorMessage) {
             $this->addClass('is-invalid');
         }
         
-        $elHTML = $this->_render();
+        $elHTML = $this->_renderElement();
 
         $html = '';
         
@@ -95,7 +101,7 @@ abstract class UI_Form_Element
 		return $html;
     }
     
-    abstract protected function _render();
+    abstract protected function _renderElement();
     
     public function getValue()
     {
@@ -144,10 +150,19 @@ abstract class UI_Form_Element
         return str_replace('UI_Form_Element_', '', get_class($this));
     }
     
-    public function setAttribute($name, $value)
+    public function setAttribute(string $name, string $value)
     {
         $this->attributes[$name] = $value;
         return $this;
+    }
+    
+    public function getAttribute(string $name)
+    {
+        if(isset($this->attributes[$name])) {
+            return $this->attributes[$name];
+        }
+        
+        return null;
     }
     
     protected function renderAttributes()
