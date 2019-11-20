@@ -12,6 +12,8 @@ abstract class Site extends Page
     
     const ERROR_DEFAULT_PAGE_DOES_NOT_EXIST = 38004;
     
+    const ERROR_SESSIONS_DISABLED = 38005;
+    
    /**
     * @var string
     */
@@ -49,7 +51,7 @@ abstract class Site extends Page
         $this->namespace = $namespace;
         $this->installFolder = realpath(__DIR__.'/../../');
 
-        session_start();
+        $this->startSession();
         
         $this->request = new \AppUtils\Request();
         $this->ui = new UI($this);
@@ -63,6 +65,23 @@ abstract class Site extends Page
                 'No pages found in the [assets/classes/Page] folder.',
                 self::ERROR_NO_PAGES_FOUND
             );
+        }
+    }
+    
+    protected function startSession()
+    {
+        switch(session_status())
+        {
+            case PHP_SESSION_DISABLED:
+                throw new Exception(
+                    'Cannot start site: sessions are disabled.',
+                    null,
+                    self::ERROR_SESSIONS_DISABLED
+                );
+                
+            case PHP_SESSION_NONE:
+                session_start();
+                break;
         }
     }
     
