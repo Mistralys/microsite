@@ -8,6 +8,8 @@ class UI_Form implements Interface_Renderable
 {
     use Traits_Renderable;
     
+    const ERROR_HIDDEN_OTHER_ELEMENT_TYPE = 41601;
+    
    /**
     * @var Page
     */
@@ -21,20 +23,57 @@ class UI_Form implements Interface_Renderable
         $this->id = md5('form_'.$this->page->getID());
         $this->request = $page->getRequest();
         
-        $this->setHidden($this->id.'_save', 'yes');
+        $this->setHidden($this->getSubmitVarName(), 'yes');
     }
     
-    public function setHidden(string $name, string $value)
+    public function setHidden(string $name, string $value) : UI_Form
     {
-        if(!isset($this->elements[$name])) {
+        if(!isset($this->elements[$name])) 
+        {
             $this->elements[$name] = new UI_Form_Element_Hidden($this, $name);
-        } else if(!$this->elements[$name] instanceof UI_Form_Element_Hidden) {
-            throw new \Exception('Cannot set hidden ['.$name.'], another element type already uses this name.');
+        } 
+        else if(!$this->elements[$name] instanceof UI_Form_Element_Hidden) 
+        {
+            throw new Exception(
+                sprintf(
+                    'Cannot set hidden [%s], an element of type [%s] already uses this name.',
+                    $name,
+                    get_class($this->elements[$name])
+                ),
+                null,
+                self::ERROR_HIDDEN_OTHER_ELEMENT_TYPE
+            );
         }
         
         $this->elements[$name]->setValue($value);
         
         return $this;
+    }
+    
+   /**
+    * Retrieves a hidden element by its name, if it exists.
+    * 
+    * @param string $name
+    * @return UI_Form_Element_Hidden|NULL
+    */
+    public function getHidden(string $name) : ?UI_Form_Element_Hidden
+    {
+        $el = $this->getElementByName($name);
+        
+        if($el instanceof UI_Form_Element_Hidden) {
+            return $el;
+        }
+        
+        return null;
+    }
+    
+    public function getElementByName(string $name) : ?UI_Form_Element
+    {
+        if(isset($this->elements[$name])) {
+            return $this->elements[$name];
+        }
+        
+        return null;
     }
     
     public function addButton(string $html) : UI_Form
@@ -77,7 +116,12 @@ class UI_Form implements Interface_Renderable
     
     public function isSubmitted() : bool
     {
-        return $this->request->getBool($this->id.'_save');
+        return $this->request->getBool($this->getSubmitVarName());
+    }
+    
+    public function getSubmitVarName() : string
+    {
+        return $this->id.'_save';
     }
     
     public function validate() : bool
@@ -160,8 +204,6 @@ class UI_Form implements Interface_Renderable
     */
     public function addText(string $name, string $label) : UI_Form_Element_Text
     {
-        require_once 'Form/Element/Text.php';
-        
         $el = new UI_Form_Element_Text($this, $name);
         $el->setLabel($label);
 
@@ -174,7 +216,12 @@ class UI_Form implements Interface_Renderable
     {
         $values = array();
         
-        foreach($this->elements as $element) {
+        foreach($this->elements as $element) 
+        {
+            if($element->getName() === $this->getSubmitVarName()) {
+                continue;
+            }
+            
             if($element->supportsValue()) {
                 $values[$element->getName()] = $element->getValue();
             }
