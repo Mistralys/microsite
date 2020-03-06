@@ -153,4 +153,9 @@ class UI
     {
         return new UI_Navigation($this, $this->site);
     }
+    
+    public function getForm() : UI_Form
+    {
+        return $this->site->getActivePage()->getForm();
+    }
 }
