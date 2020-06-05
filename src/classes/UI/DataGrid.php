@@ -6,6 +6,8 @@ namespace Microsite;
 
 use AppUtils\Interface_Optionable;
 use AppUtils\Traits_Optionable;
+use AppUtils\Traits_Classable;
+use AppUtils\Interface_Classable;
 
 /**
  * HTML table renderer: provides an easy to use API to configure the

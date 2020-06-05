@@ -37,7 +37,7 @@ class UI_Template_DataGrid extends UI_Template
         			    }
         			?>
         		</div>
-                <table class="<?php echo $this->grid->getClassesAsString() ?>">
+                <table class="<?php echo $this->grid->classesToString() ?>">
                 	<?php
                 	   echo $this->renderGridTemplate('Header');
                 	   echo $this->renderGridTemplate('Body');

@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Microsite;
 
-abstract class UI_Form_Element implements Interface_Renderable
+use AppUtils\OperationResult;
+use AppUtils\Traits_Classable;
+use AppUtils\Interface_Classable;
+
+abstract class UI_Form_Element implements Interface_Renderable, Interface_Classable
 {
     use Traits_Renderable;
+    use Traits_Classable;
 
    /**
     * @var UI_Form
@@ -35,6 +40,16 @@ abstract class UI_Form_Element implements Interface_Renderable
     
     protected $description;
     
+    /**
+     * @var UI_Form_Validation[]
+     */
+    protected $validations = array();
+    
+    /**
+     * @var boolean
+     */
+    protected $required = false;
+    
     public function __construct(UI_Form $form, string $name)
     {
         $this->form = $form;
@@ -42,6 +57,10 @@ abstract class UI_Form_Element implements Interface_Renderable
         
         $this->init();
     }
+    
+    abstract protected function _renderElement();
+    abstract public function supportsValue();
+    abstract public function supportsWrapper();
     
     protected function init()
     {
@@ -100,8 +119,6 @@ abstract class UI_Form_Element implements Interface_Renderable
 			
 		return $html;
     }
-    
-    abstract protected function _renderElement();
     
     public function getValue()
     {
@@ -211,26 +228,19 @@ abstract class UI_Form_Element implements Interface_Renderable
         return $this;
     }
     
-    public function setDescription($descr)
+    public function setDescription(string $descr) : UI_Form_Element
     {
         $this->description = $descr;
         return $this;
     }
     
-    abstract public function supportsValue();
-    
-    abstract public function supportsWrapper();
-    
-    protected $valid;
-    
-    public function validate()
+    public function validate() : OperationResult
     {
-        if(isset($this->valid)) {
-            return $this->valid;
-        }
+        $result = new OperationResult($this);
         
-        if(!$this->supportsValue()) {
-            return $this->setValid();
+        if(!$this->supportsValue()) 
+        {
+            return $result;
         }
         
         $value = $this->getValue();
@@ -238,27 +248,37 @@ abstract class UI_Form_Element implements Interface_Renderable
         // empty value
         if($value===null || $value==='') 
         {
-            if($this->isRequired()) {
-                return $this->setError('May not be empty.');
+            if($this->isRequired()) 
+            {
+                $result->makeError(t('May not be empty.'));
             }
          
-            return $this->setValid();
+            return $result;
         }
         
-        if(!empty($this->validations)) 
-        {
-            foreach($this->validations as $validation) 
-            {
-                if(!$validation->validate($value)) {
-                    return $this->setError($validation->getMessage());
-                }
-            }
-        }
+        $this->executeValidations($value, $result);
         
-        return $this->setValid();
+        return $result;
     }
     
-    protected function setValid()
+    protected function executeValidations($value, OperationResult $result) : void
+    {
+        if(empty($this->validations))
+        {
+            return;
+        }
+        
+        foreach($this->validations as $validation)
+        {
+            if(!$validation->validate($value))
+            {
+                $result->makeError($validation->getMessage());
+                return;
+            }
+        }
+    }
+    
+    protected function setValid() : bool
     {
         $this->valid = true;
         return $this->valid;
@@ -278,13 +298,6 @@ abstract class UI_Form_Element implements Interface_Renderable
         return $this->errorMessage;
     }
     
-   /**
-    * @var UI_Form_Validation[]
-    */
-    protected $validations = array();
-    
-    protected $required = false;
-    
     public function setRequired($required=true)
     {
         if($this->supportsValue()) {
@@ -294,15 +307,20 @@ abstract class UI_Form_Element implements Interface_Renderable
         return $this;
     }
     
-    public function isRequired()
+    public function isRequired() : bool
     {
         return $this->required;
     }
     
-    public function validateRegex($regex, $message)
+   /**
+    * Validates the element using a regex on its value.
+    * 
+    * @param string $regex
+    * @param string $message
+    * @return $this
+    */
+    public function validateRegex(string $regex, string $message) : UI_Form_Element
     {
-        require_once 'Form/Validation/Regex.php';
-        
         $valid = new UI_Form_Validation_Regex($this, $message, $regex);
         $this->validations[] = $valid;
         

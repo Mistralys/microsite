@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 namespace Microsite;
+use AppUtils\Traits_Classable;
+use AppUtils\Interface_Classable;
 
 class UI_DataGrid_Row_Cell implements Interface_Renderable, Interface_Classable
 {
