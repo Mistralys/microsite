@@ -255,17 +255,17 @@ abstract class Site extends Page
      */
     public function getMessages()
     {
-        return $_SESSION['messages'];
+        return $_SESSION['spex_messages'];
     }
     
     public function hasMessages() : bool
     {
-        return !empty($_SESSION['messages']);
+        return !empty($_SESSION['spex_messages']);
     }
     
     public function clearMessages() : void
     {
-        $_SESSION['messages'] = array();
+        $_SESSION['spex_messages'] = array();
     }
     
     public static function boot(string $namespace, string $webrootFolder, string $webrootUrl) : Site
