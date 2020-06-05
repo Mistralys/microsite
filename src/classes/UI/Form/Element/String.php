@@ -19,7 +19,7 @@ class UI_Form_Element_String extends UI_Form_Element
         $this->setType('text');
     }
     
-    public function setType($type)
+    public function setType(string $type)
     {
         return $this->setAttribute('type', $type);
     }
@@ -27,7 +27,7 @@ class UI_Form_Element_String extends UI_Form_Element
     protected function _renderElement() : string
     {
         $this->addClass('form-control');
-        $this->setAttribute('value', $this->getValue());
+        $this->setAttribute('value', (string)$this->getValue());
         
         return '<input'.$this->renderAttributes().'/>';
     }
