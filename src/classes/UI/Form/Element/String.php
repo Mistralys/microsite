@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Microsite;
+
+use AppUtils\RegexHelper;
 
 class UI_Form_Element_String extends UI_Form_Element
 {
@@ -37,13 +41,28 @@ class UI_Form_Element_String extends UI_Form_Element
         return $this->setAttribute('placeholder', $placeholder);
     }
     
-    public function validateLabel()
+    public function validateLabel() : UI_Form_Element_String
     {
-        return $this->validateRegex('/\A[^<>"]+/s', 'Invalid label');
+        return $this->validateRegex(RegexHelper::REGEX_LABEL, 'Invalid label');
     }
     
-    public function validateAlias()
+    public function validateTitle() : UI_Form_Element_String
     {
-        return $this->validateRegex('/\A[a-z][0-9_a-z-.]{1,80}\Z/', 'Invalid alias');
+        return $this->validateRegex(RegexHelper::REGEX_NAME_OR_TITLE, 'Invalid name/title');
+    }
+    
+    public function validateAlias() : UI_Form_Element_String
+    {
+        return $this->validateRegex(RegexHelper::REGEX_ALIAS, 'Invalid alias');
+    }
+    
+    public function validateEmail() : UI_Form_Element_String
+    {
+        return $this->validateRegex(RegexHelper::REGEX_EMAIL, 'Invalid email');
+    }
+    
+    public function validateURL() : UI_Form_Element_String
+    {
+        return $this->validateRegex(RegexHelper::REGEX_URL, 'Invalid URL');
     }
 }
