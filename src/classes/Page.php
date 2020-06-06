@@ -280,7 +280,7 @@ abstract class Page implements Interface_Renderable
 
     protected function initForm()
     {
-        $this->form->setHidden('action', $this->getSlug());
+        $this->form->setHidden('slug', $this->getSlug());
     }
 
     protected function addSubaction($name, $label, $private=false, $default=false)
