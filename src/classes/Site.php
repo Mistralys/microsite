@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Microsite;
 
+use AppUtils\Request;
+
 abstract class Site extends Page
 {
     const ERROR_PAGES_FOLDER_DOES_NOT_EXIST = 38001;
@@ -43,6 +45,11 @@ abstract class Site extends Page
     * @var UI
     */
     protected $ui;
+    
+   /**
+    * @var Site
+    */
+    protected static $instance;
 
     public function __construct(string $namespace, string $webrootFolder, string $webrootUrl)
     {
@@ -51,6 +58,8 @@ abstract class Site extends Page
         $this->namespace = $namespace;
         $this->installFolder = realpath(__DIR__.'/../../');
 
+        self::$instance = $this;
+        
         $this->startSession();
         
         $this->request = new \AppUtils\Request();
@@ -63,9 +72,15 @@ abstract class Site extends Page
         if(empty($this->subpages)) {
             throw new Exception(
                 'No pages found in the [assets/classes/Page] folder.',
+                null,
                 self::ERROR_NO_PAGES_FOUND
             );
         }
+    }
+    
+    public static function getInstance() : Site
+    {
+        return self::$instance;
     }
     
     protected function startSession()
