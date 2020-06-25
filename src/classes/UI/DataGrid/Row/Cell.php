@@ -54,7 +54,7 @@ class UI_DataGrid_Row_Cell implements Interface_Renderable, Interface_Classable
         ob_start();
         
         ?>
-        	<td<?php echo $this->getClassAttribute() ?>>
+        	<td<?php echo $this->classesToAttribute() ?>>
         		<?php echo $this->column->filterValue($this->value) ?>
         	</td>
         <?php
